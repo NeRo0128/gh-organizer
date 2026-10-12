@@ -1,6 +1,8 @@
 # src/github_organizer/services/tokens.py
 import logging
 import os
+import shutil
+import subprocess
 
 import keyring
 import keyring.errors
@@ -14,11 +16,7 @@ USERNAME = "github_token"
 
 
 def save_token(token: str) -> bool:
-    """Guarda el token en el keyring del sistema.
-
-    Returns:
-        True si se guardó en el keyring, False si se usó solo memoria/env.
-    """
+    """Guarda el token en el keyring. Devuelve True si tuvo éxito."""
     try:
         keyring.set_password(SERVICE_NAME, USERNAME, token)
         logger.info("Token guardado en el keyring del sistema")
@@ -29,8 +27,10 @@ def save_token(token: str) -> bool:
 
 
 def load_token() -> str | None:
+    """Devuelve el token desde: env var → gh CLI → keyring."""
     env_token = os.environ.get(TOKEN_ENV_VAR)
     if env_token:
+        logger.debug("Token obtenido desde variable de entorno %s", TOKEN_ENV_VAR)
         return env_token
 
     gh_token = token_from_gh_cli()
@@ -41,10 +41,12 @@ def load_token() -> str | None:
     try:
         token = keyring.get_password(SERVICE_NAME, USERNAME)
         if token:
+            logger.debug("Token obtenido desde el keyring")
             return token
     except keyring.errors.KeyringError as e:
         logger.warning("Error al leer del keyring: %s", e)
 
+    logger.debug("No se encontró token en ninguna fuente")
     return None
 
 
@@ -57,14 +59,10 @@ def delete_token() -> None:
         logger.warning("No se pudo eliminar del keyring: %s", e)
 
 
-# src/github_organizer/token_store.py (añadir)
-import shutil
-import subprocess
-
-
 def token_from_gh_cli() -> str | None:
     """Intenta obtener el token desde el CLI oficial `gh`, si está instalado."""
     if not shutil.which("gh"):
+        logger.debug("gh CLI no está instalado en el PATH")
         return None
     try:
         result = subprocess.run(
@@ -76,7 +74,15 @@ def token_from_gh_cli() -> str | None:
         )
         if result.returncode == 0:
             token = result.stdout.strip()
-            return token or None
-    except subprocess.SubprocessError, OSError:
-        pass
+            if token:
+                return token
+            logger.debug("gh auth token devolvió salida vacía")
+        else:
+            logger.debug(
+                "gh auth token falló (rc=%d): %s",
+                result.returncode,
+                result.stderr.strip(),
+            )
+    except (subprocess.SubprocessError, OSError) as e:
+        logger.warning("Error ejecutando gh: %s", e)
     return None
