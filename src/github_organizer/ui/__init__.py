@@ -1,7 +1,7 @@
 # src/github_organizer/ui/__init__.py
 """Capa de presentación: pantallas, modales y widgets reutilizables."""
 
-from github_organizer.ui import keybinds
+from github_organizer.ui import keybindings
 from github_organizer.ui.icons import (
     ICON_EMPTY,
     ICON_FOLDER,
@@ -28,5 +28,5 @@ __all__ = [
     "ICON_USER",
     "ICON_WARNING",
     "LANG_ICONS",
-    "keybinds",
+    "keybindings",
 ]

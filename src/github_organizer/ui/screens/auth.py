@@ -10,7 +10,7 @@ from textual.screen import Screen
 from textual.widgets import Button, Footer, Header, Input, Static
 
 from github_organizer.services import GitHubClient, load_token, save_token
-from github_organizer.ui import keybinds
+from github_organizer.ui import keybindings
 
 
 class TokenScreen(Screen):
@@ -34,7 +34,7 @@ class TokenScreen(Screen):
         color: $text-muted;
     }
     """
-    BINDINGS: ClassVar[list[BindingType]] = keybinds.AUTH
+    BINDINGS: ClassVar[list[BindingType]] = keybindings.AUTH
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)

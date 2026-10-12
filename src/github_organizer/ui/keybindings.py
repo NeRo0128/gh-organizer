@@ -5,38 +5,40 @@ Cada grupo corresponde a un contexto:
 - GLOBAL: se aplican a nivel de App (todas las pantallas).
 - MAIN: pantalla principal.
 - AUTH: pantalla de token.
-- FOLDER_PICKER: modal de carpetas.
-
-
-Formato: (tecla, acción, descripción).
+- FOLDER_PICKER: modal de colecciones.
 """
 
-from textual.binding import BindingType
+from textual.binding import Binding, BindingType
 
 # --- Globales (App) ---
 GLOBAL: list[BindingType] = [
-    ("q", "quit", "Salir"),
-    ("ctrl+c", "quit", "Salir"),
-    ("ctrl+t", "push_token_screen", "Token"),
+    Binding("q", "quit", "Salir"),
+    Binding("ctrl+c", "quit", "Salir"),
+    Binding("ctrl+t", "push_token_screen", "Token"),
 ]
 
 # --- Pantalla principal ---
 MAIN: list[BindingType] = [
-    ("r", "reload", "Recargar"),
-    ("t", "set_token", "Token"),
-    ("e", "expand_all", "Expandir"),
-    ("c", "collapse_all", "Colapsar"),
-    ("m", "move_repo", "Mover"),
-    ("u", "unassign_repo", "Quitar"),
-    ("n", "new_folder", "Nueva carpeta"),
+    Binding("r", "reload", "Recargar"),
+    Binding("t", "set_token", "Token"),
+    Binding("e", "expand_all", "Expandir"),
+    Binding("c", "collapse_all", "Colapsar"),
+    Binding("m", "move_repo", "Mover"),
+    Binding("u", "unassign_repo", "Quitar"),
+    Binding("n", "new_folder", "Nueva colección"),
 ]
 
 # --- Pantalla de autenticación ---
 AUTH: list[BindingType] = [
-    ("escape", "app.pop_screen", "Cancelar"),
+    Binding("escape", "app.pop_screen", "Cancelar"),
 ]
 
-# --- Modal de selección de carpeta ---
+# --- Modal de gestión de colecciones ---
 FOLDER_PICKER: list[BindingType] = [
-    ("escape", "dismiss(None)", "Cancelar"),
+    Binding("tab", "toggle_panel", "Cambiar panel", priority=True),
+    Binding("n", "new_child_folder", "Nueva hija", priority=True),
+    Binding("a", "new_root_folder", "Nueva raíz", priority=True),
+    Binding("r", "rename_folder", "Renombrar", priority=True),
+    Binding("d", "delete_folder", "Eliminar", priority=True),
+    Binding("escape", "handle_escape", "Cerrar", priority=True),
 ]
