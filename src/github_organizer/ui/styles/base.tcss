@@ -1,0 +1,81 @@
+/* src/github_organizer/ui/styles/base.tcss
+ * Estilos globales de la App. Todos los colores son variables de tema.
+ */
+
+Screen {
+    background: $background;
+    color: $foreground;
+}
+
+Header {
+    background: $surface;
+    color: $foreground;
+    border-bottom: tall $border;
+}
+
+Footer {
+    background: $surface;
+    color: $foreground;
+}
+
+Footer > .footer--key {
+    color: $primary;
+    text-style: bold;
+}
+
+Footer > .footer--description {
+    color: $foreground;
+}
+
+/* Notificaciones */
+Toast {
+    background: $panel;
+    color: $foreground;
+    border: round $primary;
+}
+
+/* Scrollbars */
+* {
+    scrollbar-background: $surface;
+    scrollbar-color: $primary 60%;
+    scrollbar-color-hover: $primary;
+    scrollbar-color-active: $accent;
+}
+
+/* Botones base (los modales y pantallas pueden sobrescribir) */
+Button {
+    background: $panel;
+    color: $foreground;
+    border: tall $border;
+    min-width: 14;
+}
+
+Button:hover {
+    background: $boost;
+}
+
+Button.-primary {
+    background: $primary;
+    color: $background;
+    border: tall $primary;
+}
+
+Button.-primary:hover {
+    background: $accent;
+    border: tall $accent;
+}
+
+/* Inputs base */
+Input {
+    background: $surface;
+    color: $foreground;
+    border: tall $border;
+}
+
+Input:focus {
+    border: tall $primary;
+}
+
+Input > .input--placeholder {
+    color: $secondary;
+}

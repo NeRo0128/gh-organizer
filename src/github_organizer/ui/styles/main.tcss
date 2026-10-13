@@ -1,0 +1,59 @@
+/* src/github_organizer/ui/styles/main.tcss
+ * MainScreen: topbar + árbol + detalle + commits.
+ */
+
+MainScreen {
+    layout: vertical;
+}
+
+#topbar {
+    height: 1;
+    padding: 0 2;
+    background: $boost;
+    color: $foreground;
+}
+
+#main-layout {
+    height: 1fr;
+}
+
+RepoTree {
+    width: 45%;
+    border: round $primary;
+    border-title-color: $accent;
+    border-title-style: bold;
+    background: $surface;
+    padding: 0 1;
+}
+
+RepoTree:focus {
+    border: round $accent;
+}
+
+RepoTree > .tree--cursor {
+    background: $primary 35%;
+    color: $foreground;
+    text-style: bold;
+}
+
+RepoTree > .tree--guides {
+    color: $secondary;
+}
+
+RepoDetail {
+    height: 1fr;
+    border: round $accent;
+    border-title-color: $accent;
+    border-title-style: bold;
+    padding: 1 2;
+    background: $surface;
+}
+
+CommitsPanel {
+    height: 1fr;
+    border: round $accent;
+    border-title-color: $accent;
+    border-title-style: bold;
+    padding: 0 2;
+    background: $surface;
+}

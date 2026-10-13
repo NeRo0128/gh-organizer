@@ -1,0 +1,43 @@
+/* src/github_organizer/ui/styles/auth.tcss
+ * TokenScreen: introducción del token personal de GitHub.
+ */
+
+TokenScreen {
+    background: $background;
+}
+
+#token-container {
+    width: 70;
+    height: auto;
+    padding: 2 4;
+    background: $surface;
+    border: round $primary;
+}
+
+#token-container > Static:first-of-type {
+    text-align: center;
+    text-style: bold;
+    color: $accent;
+    padding-bottom: 1;
+}
+
+#token-input {
+    margin: 1 0;
+    width: 100%;
+}
+
+#token-input:focus {
+    border: tall $primary;
+}
+
+#save-btn {
+    margin-top: 1;
+    width: 100%;
+}
+
+#status {
+    color: $secondary;
+    text-align: center;
+    padding-top: 1;
+    height: auto;
+}

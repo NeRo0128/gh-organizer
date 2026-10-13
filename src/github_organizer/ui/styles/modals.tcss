@@ -1,0 +1,116 @@
+/* src/github_organizer/ui/styles/modals.tcss
+ * FolderModal y OrganizeModal.
+ */
+
+FolderModal, OrganizeModal {
+    align: center middle;
+    background: $background 60%;
+}
+
+/* ────────── FolderModal ────────── */
+
+#modal-box {
+    width: 80;
+    height: auto;
+    max-height: 30;
+    padding: 1 2;
+    background: $surface;
+    border: round $accent;
+    border-title-color: $accent;
+    border-title-style: bold;
+}
+
+#modal-title {
+    text-style: bold;
+    margin-bottom: 1;
+    color: $foreground;
+}
+
+#folder-tree {
+    height: 1fr;
+    min-height: 8;
+    max-height: 14;
+    border: round $primary;
+    background: $panel;
+}
+
+#folder-tree:focus {
+    border: round $accent;
+}
+
+#context-label {
+    margin-top: 1;
+    height: auto;
+    color: $foreground;
+}
+
+#folder-input {
+    margin: 0 0 1 0;
+}
+
+#folder-input:focus {
+    border: tall $accent;
+    background: $boost;
+}
+
+#hint-label {
+    height: 2;
+    color: $text-muted;
+    text-align: center;
+}
+
+/* ────────── OrganizeModal ────────── */
+
+#organize-box {
+    width: 76;
+    height: auto;
+    max-height: 24;
+    padding: 1 2;
+    background: $surface;
+    border: round $accent;
+    border-title-color: $accent;
+    border-title-style: bold;
+}
+
+#organize-title {
+    text-style: bold;
+    margin-bottom: 1;
+    color: $foreground;
+}
+
+#strategy-list {
+    height: auto;
+    max-height: 12;
+    margin: 1 0;
+    border: round $primary;
+    background: $panel;
+}
+
+#strategy-list:focus {
+    border: round $accent;
+}
+
+#strategy-list > ListItem {
+    padding: 0 1;
+}
+
+#strategy-list > ListItem.--highlight {
+    background: $primary 35%;
+}
+
+#strategy-list > ListItem.--highlight Label {
+    color: $foreground;
+}
+
+#summary {
+    margin-top: 1;
+    height: auto;
+    color: $text-muted;
+}
+
+#hint {
+    height: auto;
+    color: $text-muted;
+    text-align: center;
+    padding-top: 1;
+}

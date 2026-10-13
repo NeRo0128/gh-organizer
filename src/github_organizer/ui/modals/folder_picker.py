@@ -12,6 +12,7 @@ from textual.widgets.tree import TreeNode
 from github_organizer.services import FolderManager
 from github_organizer.ui import keybindings
 from github_organizer.ui.icons import ICON_EMPTY, ICON_FOLDER
+from github_organizer.ui.styles import MODALS_CSS
 
 logger = logging.getLogger(__name__)
 
@@ -33,55 +34,7 @@ class FolderModal(ModalScreen[str | None]):
 
     BINDINGS: ClassVar[list[BindingType]] = keybindings.FOLDER_PICKER
 
-    CSS = """
-    FolderModal {
-        align: center middle;
-    }
-
-    #modal-box {
-        width: 80;
-        height: auto;
-        max-height: 30;
-        padding: 1 2;
-        background: $surface;
-        border: round $accent;
-        border-title-color: $accent;
-        border-title-style: bold;
-    }
-
-    #modal-title {
-        text-style: bold;
-        margin-bottom: 1;
-    }
-
-    #folder-tree {
-        height: 1fr;
-        min-height: 8;
-        max-height: 14;
-        border: round $primary;
-    }
-
-    #context-label {
-        margin-top: 1;
-        height: auto;
-        color: $text;
-    }
-
-    #folder-input {
-        margin: 0 0 1 0;
-    }
-
-    #folder-input:focus {
-        border: tall $accent;
-        background: $boost;
-    }
-
-    #hint-label {
-        height: 2;
-        color: $text-muted;
-        text-align: center;
-    }
-    """
+    CSS_PATH = MODALS_CSS
 
     def __init__(self, repo_name: str | None = None, mode: str = "move") -> None:
         """mode: 'move' (asignar repo) o 'create' (crear/editar colecciones)."""

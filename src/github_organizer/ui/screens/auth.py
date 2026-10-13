@@ -11,29 +11,13 @@ from textual.widgets import Button, Footer, Header, Input, Static
 
 from github_organizer.services import GitHubClient, load_token, save_token
 from github_organizer.ui import keybindings
+from github_organizer.ui.styles import AUTH_CSS
 
 
 class TokenScreen(Screen):
     """Pantalla para introducir el token de GitHub."""
 
-    CSS = """
-    TokenScreen {
-        align: center middle;
-    }
-    #token-container {
-        width: 60;
-        height: auto;
-        padding: 1 2;
-        border: round $primary;
-    }
-    #token-input {
-        margin: 1 0;
-    }
-    #status {
-        margin-top: 1;
-        color: $text-muted;
-    }
-    """
+    CSS_PATH = AUTH_CSS
     BINDINGS: ClassVar[list[BindingType]] = keybindings.AUTH
 
     def compose(self) -> ComposeResult:
@@ -56,48 +40,47 @@ class TokenScreen(Screen):
             )
         self.query_one("#token-input", Input).focus()
 
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id != "save-btn":
+            return
 
-def on_button_pressed(self, event: Button.Pressed) -> None:
-    if event.button.id != "save-btn":
-        return
+        token = self.query_one("#token-input", Input).value.strip()
+        status = self.query_one("#status", Static)
 
-    token = self.query_one("#token-input", Input).value.strip()
-    status = self.query_one("#status", Static)
+        if not token:
+            status.update("❌ El token no puede estar vacío.")
+            return
 
-    if not token:
-        status.update("❌ El token no puede estar vacío.")
-        return
+        if len(token) < 20:
+            status.update(
+                "❌ El token parece demasiado corto. Revisa que lo hayas copiado completo."
+            )
+            return
 
-    if len(token) < 20:
-        status.update(
-            "❌ El token parece demasiado corto. Revisa que lo hayas copiado completo."
-        )
-        return
+        # --- Validar el token contra GitHub antes de guardarlo ---
+        status.update("⏳ Validando token con GitHub...")
+        client = GitHubClient(token)
+        try:
+            user = client.get_authenticated_user()
+        except GithubException as e:
+            msg = e.data.get("message", str(e)) if isinstance(e.data, dict) else str(e)
+            status.update(f"❌ Token inválido o sin permisos: {msg}")
+            return
+        except requests.exceptions.RequestException as e:
+            status.update(f"🌐 Error de red: no se pudo contactar a GitHub ({e})")
+            return
+        finally:
+            client.close()  # 👈 un solo cierre, siempre se ejecuta
 
-    # --- Validar el token contra GitHub antes de guardarlo ---
-    status.update("⏳ Validando token con GitHub...")
-    client = GitHubClient(token)
-    try:
-        user = client.get_authenticated_user()
-    except GithubException as e:
-        msg = e.data.get("message", str(e)) if isinstance(e.data, dict) else str(e)
-        status.update(f"❌ Token inválido o sin permisos: {msg}")
-        return
-    except requests.exceptions.RequestException as e:
-        status.update(f"🌐 Error de red: no se pudo contactar a GitHub ({e})")
-        return
-    finally:
-        client.close()  # 👈 un solo cierre, siempre se ejecuta
+        # --- Si llegamos aquí, el token es válido. Lo guardamos. ---
+        if save_token(token):
+            status.update(
+                f"✅ Conectado como @{user.login} — token guardado en el keyring."
+            )
+        else:
+            status.update(
+                f"⚠️ Conectado como @{user.login}, pero no se pudo guardar en el "
+                "keyring. Se usará solo para esta sesión."
+            )
 
-    # --- Si llegamos aquí, el token es válido. Lo guardamos. ---
-    if save_token(token):
-        status.update(
-            f"✅ Conectado como @{user.login} — token guardado en el keyring."
-        )
-    else:
-        status.update(
-            f"⚠️ Conectado como @{user.login}, pero no se pudo guardar en el "
-            "keyring. Se usará solo para esta sesión."
-        )
-
-    self.set_timer(1.8, self.app.pop_screen)
+        self.set_timer(1.8, self.app.pop_screen)

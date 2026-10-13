@@ -10,6 +10,7 @@ from textual.widgets import Label, ListItem, ListView, Static
 
 from github_organizer.services.organizer import STRATEGIES
 from github_organizer.ui import keybindings
+from github_organizer.ui.styles import MODALS_CSS
 
 logger = logging.getLogger(__name__)
 
@@ -21,41 +22,7 @@ class OrganizeModal(ModalScreen[int | None]):
     """
 
     BINDINGS: ClassVar[list[BindingType]] = keybindings.ORGANIZE
-
-    CSS = """
-    OrganizeModal {
-        align: center middle;
-    }
-
-    #organize-box {
-        width: 76;
-        height: auto;
-        max-height: 24;
-        padding: 1 2;
-        background: $surface;
-        border: round $accent;
-        border-title-color: $accent;
-        border-title-style: bold;
-    }
-
-    #organize-title {
-        text-style: bold;
-        margin-bottom: 1;
-    }
-
-    #strategy-list {
-        height: auto;
-        max-height: 12;
-        margin: 1 0;
-        border: round $primary;
-    }
-
-    #summary {
-        margin-top: 1;
-        height: auto;
-        color: $text-muted;
-    }
-    """
+    CSS_PATH = MODALS_CSS
 
     def __init__(self, unassigned_count: int, assigned_count: int) -> None:
         super().__init__()

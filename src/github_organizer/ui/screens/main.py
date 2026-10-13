@@ -15,6 +15,7 @@ from textual.widgets import Footer, Header, Static
 
 from github_organizer.core import Repo
 from github_organizer.services import FolderManager, GitHubClient, load_token
+from github_organizer.services.preferences import next_theme, save_theme
 from github_organizer.ui import (
     ICON_FOLDER,
     ICON_GITHUB,
@@ -22,6 +23,7 @@ from github_organizer.ui import (
     ICON_WARNING,
     keybindings,
 )
+from github_organizer.ui.styles import MAIN_CSS
 from github_organizer.ui.widgets import (
     CommitsPanel,
     RepoDetail,
@@ -36,50 +38,7 @@ class MainScreen(Screen):
     """Pantalla principal."""
 
     BINDINGS: ClassVar[list[BindingType]] = keybindings.MAIN
-
-    CSS = """
-    MainScreen {
-        layout: vertical;
-    }
-
-    #topbar {
-        height: 1;
-        padding: 0 2;
-        background: $boost;
-        color: $text;
-    }
-
-    #main-layout {
-        height: 1fr;
-    }
-
-    #repo-tree {
-        width: 45%;
-        border: round $primary;
-        border-title-color: $accent;
-        border-title-style: bold;
-    }
-
-    #detail-panel {
-        width: 55%;
-    }
-
-    #detail-content {
-        height: 1fr;
-        border: round $accent;
-        border-title-color: $accent;
-        border-title-style: bold;
-        padding: 1 2;
-    }
-
-    #commits-panel {
-        height: 1fr;
-        border: round $accent;
-        border-title-color: $accent;
-        border-title-style: bold;
-        padding: 0 2;
-    }
-    """
+    CSS_PATH = MAIN_CSS
 
     def __init__(self) -> None:
         super().__init__()
@@ -322,3 +281,10 @@ class MainScreen(Screen):
             OrganizeModal(unassigned_count, assigned_count),
             handle_result,
         )
+
+    def action_cycle_theme(self) -> None:
+        """Cicla entre los temas disponibles y persiste la elección."""
+        new = next_theme(self.app.theme)
+        self.app.theme = new
+        save_theme(new)
+        self.notify(f"🎨 Tema: [b]{new}[/b]", timeout=2)

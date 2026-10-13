@@ -15,7 +15,7 @@ from textual.binding import Binding, BindingType
 GLOBAL: list[BindingType] = [
     Binding("q", "quit", "Salir"),
     Binding("ctrl+c", "quit", "Salir"),
-    Binding("ctrl+t", "push_token_screen", "Token"),
+    Binding("ctrl+shift+t", "push_token_screen", "Token"),
 ]
 
 # --- Pantalla principal ---
@@ -28,6 +28,7 @@ MAIN: list[BindingType] = [
     Binding("u", "unassign_repo", "Quitar"),
     Binding("n", "new_folder", "Nueva colección"),
     Binding("o", "organize", "Auto-organizar"),
+    Binding("ctrl+t", "cycle_theme", "Tema", show=True),
 ]
 
 # --- Pantalla de autenticación ---
