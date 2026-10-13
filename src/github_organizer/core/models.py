@@ -1,4 +1,4 @@
-# src/github_organizer/models.py
+# src/github_organizer/core/models.py
 from dataclasses import dataclass, field
 
 
@@ -28,3 +28,11 @@ class Folder:
 
     path: str  # "Trabajo/Negocios/Web"
     repos: list[str] = field(default_factory=list)  # nombres de repos
+
+
+@dataclass
+class Commit:
+    sha: str  # corto (7 chars)
+    message: str  # primera línea
+    author: str
+    date: str  # ISO 8601

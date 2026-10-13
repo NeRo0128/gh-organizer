@@ -1,20 +1,15 @@
-# src/github_organizer/github_client.py
+# src/github_organizer/services/github.py
+
 import logging
-from dataclasses import dataclass
+from typing import cast
 
 from github import Auth, Github
+from github.Commit import Commit as GHCommit  # ← el tipo real de PyGithub
 from github.Repository import Repository
 
-from github_organizer.core import Repo
+from github_organizer.core import Commit, GitHubUser, Repo
 
-logger = logging.getLogger(__name__)  # Logger de nuestro módulo
-
-
-@dataclass
-class GitHubUser:
-    login: str
-    name: str | None
-    avatar_url: str
+logger = logging.getLogger(__name__)
 
 
 class GitHubClient:
@@ -61,3 +56,33 @@ class GitHubClient:
             name=user.name,
             avatar_url=user.avatar_url,
         )
+
+    def get_recent_commits(self, repo_full_name: str, limit: int = 5) -> list[Commit]:
+        """Devuelve los últimos `limit` commits de un repo.
+
+        Lanza GithubException si el repo no existe o no hay permisos.
+        """
+        repo = self._gh.get_repo(repo_full_name)
+        commits: list[Commit] = []
+
+        # PyGithub tipa get_commits() como PaginatedList[GithubObject] por stubs
+        # incompletos. El runtime devuelve objetos Commit reales, así que
+        # casteamos para que el LSP no se queje de .commit / .sha.
+        gh_commits = cast("list[GHCommit]", repo.get_commits()[:limit])
+
+        for c in gh_commits:
+            git_author = c.commit.author
+            author_name = git_author.name if git_author and git_author.name else "—"
+            date_iso = (
+                git_author.date.isoformat() if git_author and git_author.date else ""
+            )
+            first_line = c.commit.message.split("\n", 1)[0]
+            commits.append(
+                Commit(
+                    sha=c.sha[:7],
+                    message=first_line,
+                    author=author_name,
+                    date=date_iso,
+                )
+            )
+        return commits
