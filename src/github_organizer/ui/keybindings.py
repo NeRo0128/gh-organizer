@@ -6,6 +6,7 @@ Cada grupo corresponde a un contexto:
 - MAIN: pantalla principal.
 - AUTH: pantalla de token.
 - FOLDER_PICKER: modal de colecciones.
+- ORGANIZE: modal de auto-organización.
 """
 
 from textual.binding import Binding, BindingType
@@ -26,6 +27,7 @@ MAIN: list[BindingType] = [
     Binding("m", "move_repo", "Mover"),
     Binding("u", "unassign_repo", "Quitar"),
     Binding("n", "new_folder", "Nueva colección"),
+    Binding("o", "organize", "Auto-organizar"),
 ]
 
 # --- Pantalla de autenticación ---
@@ -41,4 +43,9 @@ FOLDER_PICKER: list[BindingType] = [
     Binding("r", "rename_folder", "Renombrar", priority=True),
     Binding("d", "delete_folder", "Eliminar", priority=True),
     Binding("escape", "handle_escape", "Cerrar", priority=True),
+]
+
+# --- Modal de auto-organización ---
+ORGANIZE: list[BindingType] = [
+    Binding("escape", "app.pop_screen", "Cancelar"),
 ]
