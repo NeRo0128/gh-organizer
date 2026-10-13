@@ -1,9 +1,13 @@
 # src/github_organizer/services/folder.py
 import logging
 
+from github_organizer.core import Repo
+from github_organizer.services.organizer import Strategy
 from github_organizer.services.settings import load_folders, save_folders
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_FOLDERS = ["Personal", "Trabajo", "Proyectos", "Archivados"]
 
 
 class FolderManager:
@@ -11,7 +15,19 @@ class FolderManager:
 
     def __init__(self) -> None:
         self._data: dict[str, list[str]] = load_folders()
+        self._ensure_defaults()
         logger.debug("FolderManager inicializado con %d carpetas", len(self._data))
+
+    def _ensure_defaults(self) -> None:
+        """Crea las carpetas por defecto si el archivo está vacío (primera ejecución)."""
+        if self._data:
+            return
+        logger.info(
+            "Primera ejecución: creando carpetas por defecto %s", DEFAULT_FOLDERS
+        )
+        for name in DEFAULT_FOLDERS:
+            self._data[name] = []
+        save_folders(self._data)
 
     # ------------------------------------------------------------------ #
     #  Lecturas
@@ -20,14 +36,12 @@ class FolderManager:
         return self._data
 
     def exists(self, folder_path: str) -> bool:
-        """Comprueba si una carpeta existe en el JSON."""
         return folder_path in self._data
 
     def get_repos_in_folder(self, folder_path: str) -> list[str]:
         return self._data.get(folder_path, [])
 
     def get_assigned_repo_names(self) -> set[str]:
-        """Devuelve todos los nombres de repo que ya están en alguna carpeta."""
         assigned: set[str] = set()
         for repos in self._data.values():
             assigned.update(repos)
@@ -38,7 +52,6 @@ class FolderManager:
     #  Asignación de repos
     # ------------------------------------------------------------------ #
     def assign_repo(self, repo_name: str, folder_path: str) -> None:
-        """Asigna un repo a una carpeta, quitándolo de cualquier otra."""
         logger.debug("assign_repo(%r, %r)", repo_name, folder_path)
         self._remove_from_all(repo_name)
         self._data.setdefault(folder_path, []).append(repo_name)
@@ -46,7 +59,6 @@ class FolderManager:
         logger.info("Repo %r asignado a %r", repo_name, folder_path)
 
     def remove_repo(self, repo_name: str) -> None:
-        """Quita un repo de todas las carpetas."""
         logger.debug("remove_repo(%r)", repo_name)
         self._remove_from_all(repo_name)
         save_folders(self._data)
@@ -61,7 +73,6 @@ class FolderManager:
     #  Gestión de carpetas
     # ------------------------------------------------------------------ #
     def create_folder(self, folder_path: str) -> None:
-        """Crea la carpeta y todos sus padres intermedios si no existen."""
         logger.debug("create_folder(%r)", folder_path)
         parts = folder_path.split("/")
         created: list[str] = []
@@ -77,17 +88,7 @@ class FolderManager:
             logger.debug("create_folder: %r ya existía", folder_path)
 
     def rename_folder(self, old_path: str, new_name: str) -> str:
-        """Renombra una carpeta y todas sus descendientes.
-
-        Returns:
-            La nueva ruta completa.
-
-        Raises:
-            KeyError: si old_path no existe.
-            ValueError: si new_name está vacío o ya hay una carpeta con ese nombre.
-        """
         logger.debug("rename_folder(%r, %r)", old_path, new_name)
-
         if old_path not in self._data:
             raise KeyError(f"No existe la carpeta: {old_path}")
 
@@ -100,7 +101,6 @@ class FolderManager:
         new_path = "/".join(parts)
 
         if new_path == old_path:
-            logger.debug("rename_folder: no-op (mismo nombre)")
             return old_path
         if new_path in self._data:
             raise ValueError(f"Ya existe una colección con esa ruta: {new_path}")
@@ -121,7 +121,6 @@ class FolderManager:
         return new_path
 
     def delete_folder(self, path: str) -> None:
-        """Elimina una carpeta, sus descendientes y desasigna sus repos."""
         logger.debug("delete_folder(%r)", path)
         to_delete = [p for p in self._data if p == path or p.startswith(path + "/")]
         for p in to_delete:
@@ -130,7 +129,6 @@ class FolderManager:
         logger.info("Carpetas eliminadas: %s", to_delete)
 
     def count_descendants(self, path: str) -> tuple[int, int]:
-        """Devuelve (repos, subcarpetas) contando esta carpeta y sus descendientes."""
         total_repos = 0
         subfolders = 0
         for p, repo_list in self._data.items():
@@ -146,3 +144,37 @@ class FolderManager:
             subfolders,
         )
         return total_repos, subfolders
+
+    # ------------------------------------------------------------------ #
+    #  Auto-organización
+    # ------------------------------------------------------------------ #
+    def apply_strategy(
+        self, repos: list[Repo], strategy_fn: Strategy
+    ) -> tuple[int, int]:
+        """Aplica una estrategia SOLO a los repos no asignados.
+
+        Returns:
+            (repos_movidos, carpetas_creadas)
+        """
+        assigned = self.get_assigned_repo_names()
+        unassigned = [r for r in repos if r.name not in assigned]
+        if not unassigned:
+            logger.info("apply_strategy: no hay repos sin asignar")
+            return 0, 0
+
+        plan = strategy_fn(unassigned)
+        folders_before = set(self._data.keys())
+
+        for folder, repo_names in plan.items():
+            self._data.setdefault(folder, [])
+            for name in repo_names:
+                self._data[folder].append(name)
+
+        save_folders(self._data)
+        new_folders = set(self._data.keys()) - folders_before
+        logger.info(
+            "apply_strategy: %d repos movidos, %d carpetas nuevas",
+            len(unassigned),
+            len(new_folders),
+        )
+        return len(unassigned), len(new_folders)
