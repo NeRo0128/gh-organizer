@@ -8,12 +8,24 @@ from github_organizer.services.tokens import (
     save_token,
     token_from_gh_cli,
 )
+from github_organizer.services.tree_state import (
+    MODE_COLLAPSED,
+    MODE_EXPANDED,
+    MODE_REMEMBER,
+    load_expanded_paths,
+    save_expanded_paths,
+)
 
 __all__ = [
+    "MODE_COLLAPSED",
+    "MODE_EXPANDED",
+    "MODE_REMEMBER",
     "FolderManager",
     "GitHubClient",
     "delete_token",
+    "load_expanded_paths",
     "load_token",
+    "save_expanded_paths",
     "save_token",
     "token_from_gh_cli",
 ]
