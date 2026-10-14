@@ -48,7 +48,7 @@ class MainScreen(Screen):
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
-        yield Static("⏳ Iniciando...", id="topbar")
+        yield Static("⏳ Iniciando...", id="topbar", classes="screen-topbar")
         with Horizontal(id="main-layout"):
             yield RepoTree(id="repo-tree")
             with Vertical(id="detail-panel"):
@@ -159,6 +159,11 @@ class MainScreen(Screen):
         from github_organizer.ui.screens import TokenScreen
 
         self.app.push_screen(TokenScreen())
+
+    def action_open_settings(self) -> None:
+        from github_organizer.ui.screens import SettingsScreen
+
+        self.app.push_screen(SettingsScreen())
 
     def action_expand_all(self) -> None:
         self.query_one(RepoTree).root.expand_all()

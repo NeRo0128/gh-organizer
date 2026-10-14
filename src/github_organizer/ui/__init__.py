@@ -3,13 +3,17 @@
 
 from github_organizer.ui import keybindings
 from github_organizer.ui.icons import (
+    ICON_COG,
     ICON_EMPTY,
     ICON_FOLDER,
     ICON_FOLDER_OPEN,
     ICON_GITHUB,
     ICON_GLOBE,
+    ICON_KEY,
     ICON_LOCK,
+    ICON_PALETTE,
     ICON_REPO,
+    ICON_SLIDERS,
     ICON_UNASSIGNED,
     ICON_USER,
     ICON_WARNING,
@@ -17,13 +21,17 @@ from github_organizer.ui.icons import (
 )
 
 __all__ = [
+    "ICON_COG",
     "ICON_EMPTY",
     "ICON_FOLDER",
     "ICON_FOLDER_OPEN",
     "ICON_GITHUB",
     "ICON_GLOBE",
+    "ICON_KEY",
     "ICON_LOCK",
+    "ICON_PALETTE",
     "ICON_REPO",
+    "ICON_SLIDERS",
     "ICON_UNASSIGNED",
     "ICON_USER",
     "ICON_WARNING",

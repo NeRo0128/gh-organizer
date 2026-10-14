@@ -55,3 +55,10 @@ ICON_GITHUB = icon("dev-github", "🐙")
 ICON_EMPTY = icon("cod-circle_outline", "○")
 ICON_WARNING = icon("fa-warning", "⚠️")
 ICON_RELOAD = icon("cod-refresh", "🔄")
+
+# ── Settings ──────────────────────────────────────────────────────
+# ── Settings ──────────────────────────────────────────────────────
+ICON_PALETTE = icon("fa-palette", "🎨")  # Apariencia
+ICON_COG = icon("fa-cog", "⚙️")  # Organización
+ICON_KEY = icon("fa-key", "🔑")  # Cuenta
+ICON_SLIDERS = icon("fa-sliders", "⚙️")  # Configuración topbar

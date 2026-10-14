@@ -1,81 +1,65 @@
-/* src/github_organizer/ui/styles/base.tcss
- * Estilos globales de la App. Todos los colores son variables de tema.
- */
+/* ═══════════════════════════════════════════════════════════════
+ *  Identidad visual — clases reutilizables
+ *  Cualquier pantalla las puede usar. No sobreescribir sin motivo.
+ * ═══════════════════════════════════════════════════════════════ */
 
-Screen {
-    background: $background;
+/* Barra superior de pantalla: 1 línea, fondo diferenciado */
+.screen-topbar {
+    height: 1;
+    padding: 0 2;
+    background: $boost;
     color: $foreground;
 }
 
-Header {
+/* Panel: contenedor visual de la app (árbol, detalle, secciones…) */
+.panel {
+    border: round $accent;
+    border-title-color: $accent;
+    border-title-style: bold;
     background: $surface;
-    color: $foreground;
-    border-bottom: tall $border;
+    padding: 0 2;
 }
 
-Footer {
-    background: $surface;
-    color: $foreground;
+.panel.-text-content {
+    padding: 1 2;
 }
 
-Footer > .footer--key {
-    color: $primary;
-    text-style: bold;
-}
-
-Footer > .footer--description {
-    color: $foreground;
-}
-
-/* Notificaciones */
-Toast {
-    background: $panel;
-    color: $foreground;
+.panel:focus,
+.panel:focus-within {
     border: round $primary;
 }
 
-/* Scrollbars */
-* {
-    scrollbar-background: $surface;
-    scrollbar-color: $primary 60%;
-    scrollbar-color-hover: $primary;
-    scrollbar-color-active: $accent;
-}
-
-/* Botones base (los modales y pantallas pueden sobrescribir) */
-Button {
-    background: $panel;
+/* Item de sidebar / navegación */
+.sidebar-item {
+    padding: 1 2;
+    height: 3;
     color: $foreground;
-    border: tall $border;
-    min-width: 14;
 }
 
-Button:hover {
-    background: $boost;
-}
-
-Button.-primary {
-    background: $primary;
-    color: $background;
-    border: tall $primary;
-}
-
-Button.-primary:hover {
-    background: $accent;
-    border: tall $accent;
-}
-
-/* Inputs base */
-Input {
-    background: $surface;
+.sidebar-item.-active {
+    background: $primary 35%;
     color: $foreground;
-    border: tall $border;
+    text-style: bold;
 }
 
-Input:focus {
-    border: tall $primary;
+/* Fila seleccionable (opciones, listas, etc.) */
+.selectable-row {
+    padding: 0 1;
+    height: 1;
+    color: $foreground;
 }
 
-Input > .input--placeholder {
-    color: $secondary;
+.selectable-row.-selected {
+    background: $primary 25%;
+    text-style: bold;
+}
+
+/* Fila con ajuste pendiente de implementar */
+.selectable-row.-pending {
+    color: $warning 70%;
+}
+
+.selectable-row.-pending.-selected {
+    background: $warning 20%;
+    text-style: bold;
 }

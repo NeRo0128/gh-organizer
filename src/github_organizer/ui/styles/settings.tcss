@@ -1,0 +1,93 @@
+/* src/github_organizer/ui/styles/settings.tcss
+ * Pantalla de configuración con tabs horizontales.
+ *
+ *   ┌─ Topbar ───────────────────────────────────────────┐
+ *   │   Configuración · Tema: GitHub Dark                │
+ *   ├────────────────────────────────────────────────────┤
+ *   │  [ Apariencia ] [ Repositorios ] [ Organización ]  │
+ *   ├────────────────────────────────────────────────────┤
+ *   │┌─ Apariencia ─────────────────────────────────────┐│
+ *   ││ Tema           ‹ GitHub Dark ›                   ││
+ *   ││ Modo árbol     ‹ Recordar ›  ⏳                   ││
+ *   │└──────────────────────────────────────────────────┘│
+ *   └────────────────────────────────────────────────────┘
+ */
+
+SettingsScreen {
+    layout: vertical;
+}
+
+#settings-topbar {
+    height: 1;
+    padding: 0 2;
+    background: $boost;
+    color: $foreground;
+}
+
+/* ────────── Tabs horizontales ────────── */
+
+#settings-tabs {
+    height: 3;
+    background: $surface;
+    border-bottom: solid $border;
+    padding: 0 1;
+}
+
+#settings-tabs .tab-item {
+    width: 1fr;
+    padding: 1 2;
+    height: 3;
+    color: $secondary;
+    text-align: center;
+}
+
+#settings-tabs .tab-item:hover {
+    color: $foreground;
+}
+
+#settings-tabs .tab-item.-active {
+    background: $primary 35%;
+    color: $foreground;
+    text-style: bold;
+}
+
+/* ────────── Panel de contenido ────────── */
+
+#settings-content {
+    border: round $accent;
+    border-title-color: $accent;
+    border-title-style: bold;
+    background: $surface;
+    padding: 0 2;
+}
+
+#settings-content:focus {
+    border: round $primary;
+}
+
+#section-options {
+    height: auto;
+    padding: 1 0;
+}
+
+/* ────────── Filas de opciones ────────── */
+
+#section-options .option {
+    padding: 0 1;
+    height: 1;
+    color: $foreground;
+}
+
+#section-options .option.-selected {
+    background: $primary 25%;
+    text-style: bold;
+}
+
+#section-options .option.-pending {
+    color: $warning 70%;
+}
+
+#section-options .option.-pending.-selected {
+    background: $warning 20%;
+    text-style: bold;
+}

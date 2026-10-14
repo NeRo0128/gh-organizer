@@ -29,6 +29,7 @@ MAIN: list[BindingType] = [
     Binding("n", "new_folder", "Nueva colección"),
     Binding("o", "organize", "Auto-organizar"),
     Binding("ctrl+t", "cycle_theme", "Tema", show=True),
+    Binding("comma", "open_settings", "Settings", show=True),
 ]
 
 # --- Pantalla de autenticación ---
@@ -49,4 +50,9 @@ FOLDER_PICKER: list[BindingType] = [
 # --- Modal de auto-organización ---
 ORGANIZE: list[BindingType] = [
     Binding("escape", "app.pop_screen", "Cancelar"),
+]
+
+# --- Pantalla de settings ---
+SETTINGS: list[BindingType] = [
+    Binding("escape", "app.pop_screen", "Cerrar", priority=True),
 ]

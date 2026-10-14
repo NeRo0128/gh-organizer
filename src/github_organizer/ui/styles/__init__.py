@@ -11,6 +11,7 @@ BASE_CSS = STYLES_DIR / "base.tcss"
 MAIN_CSS = STYLES_DIR / "main.tcss"
 AUTH_CSS = STYLES_DIR / "auth.tcss"
 MODALS_CSS = STYLES_DIR / "modals.tcss"
+SETTINGS_CSS = STYLES_DIR / "settings.tcss"
 
 __all__ = [
     "ALL_THEMES",
@@ -18,5 +19,6 @@ __all__ = [
     "BASE_CSS",
     "MAIN_CSS",
     "MODALS_CSS",
+    "SETTINGS_CSS",
     "STYLES_DIR",
 ]
