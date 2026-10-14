@@ -1,13 +1,12 @@
 # src/github_organizer/services/github.py
-
 import logging
 from typing import cast
 
 from github import Auth, Github
-from github.Commit import Commit as GHCommit  # ← el tipo real de PyGithub
+from github.Commit import Commit as GHCommit
 from github.Repository import Repository
 
-from github_organizer.core import Commit, GitHubUser, Repo
+from github_organizer.core import Commit, GitHubUser, Release, Repo
 
 logger = logging.getLogger(__name__)
 
@@ -86,3 +85,42 @@ class GitHubClient:
                 )
             )
         return commits
+
+    def get_releases(self, repo_full_name: str, limit: int = 5) -> list[Release]:
+        """Devuelve las últimas `limit` releases publicadas de un repo.
+
+        Devuelve lista vacía si el repo no tiene releases (no lanza error).
+        Lanza GithubException si el repo no existe o no hay permisos.
+        """
+        repo = self._gh.get_repo(repo_full_name)
+        releases: list[Release] = []
+
+        for i, r in enumerate(repo.get_releases()):
+            if i >= limit:
+                break
+            body_line = self._clean_release_body(r.body or "")
+            releases.append(
+                Release(
+                    tag_name=r.tag_name,
+                    name=r.title or r.tag_name,
+                    published_at=r.published_at.isoformat() if r.published_at else "",
+                    body=body_line,
+                    prerelease=bool(r.prerelease),
+                    html_url=r.html_url,
+                )
+            )
+        return releases
+
+    @staticmethod
+    def _clean_release_body(body: str) -> str:
+        """Extrae la primera línea útil de las notas de una release.
+
+        Quita markdown básico al inicio (`#`, `*`, `-`, `>`) y trunca a 70 chars.
+        """
+        if not body:
+            return ""
+        first = body.split("\n", 1)[0].strip()
+        first = first.lstrip("#*-> ").strip()
+        if len(first) > 70:
+            first = first[:67] + "…"
+        return first

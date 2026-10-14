@@ -1,5 +1,5 @@
 /* src/github_organizer/ui/styles/main.tcss
- * MainScreen: topbar + árbol + detalle + commits.
+ * MainScreen: topbar + árbol (1/3) + detalle/releases (2fr + 1fr) + commits.
  */
 
 MainScreen {
@@ -18,7 +18,7 @@ MainScreen {
 }
 
 RepoTree {
-    width: 45%;
+    width: 1fr;
     border: round $primary;
     border-title-color: $accent;
     border-title-style: bold;
@@ -40,12 +40,31 @@ RepoTree > .tree--guides {
     color: $secondary;
 }
 
+#detail-panel {
+    width: 2fr;
+}
+
+#detail-row {
+    height: 2fr;
+}
+
 RepoDetail {
+    width: 2fr;
     height: 1fr;
     border: round $accent;
     border-title-color: $accent;
     border-title-style: bold;
     padding: 1 2;
+    background: $surface;
+}
+
+ReleasesPanel {
+    width: 1fr;
+    height: 1fr;
+    border: round $accent;
+    border-title-color: $accent;
+    border-title-style: bold;
+    padding: 0 2;
     background: $surface;
 }
 

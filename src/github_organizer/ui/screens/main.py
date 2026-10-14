@@ -26,6 +26,7 @@ from github_organizer.ui import (
 from github_organizer.ui.styles import MAIN_CSS
 from github_organizer.ui.widgets import (
     CommitsPanel,
+    ReleasesPanel,
     RepoDetail,
     RepoHighlighted,
     RepoTree,
@@ -51,7 +52,9 @@ class MainScreen(Screen):
         with Horizontal(id="main-layout"):
             yield RepoTree(id="repo-tree")
             with Vertical(id="detail-panel"):
-                yield RepoDetail(id="detail-content")
+                with Horizontal(id="detail-row"):
+                    yield RepoDetail(id="detail-content")
+                    yield ReleasesPanel(id="releases-panel")
                 yield CommitsPanel(id="commits-panel")
         yield Footer()
 
@@ -73,6 +76,7 @@ class MainScreen(Screen):
 
         topbar.update("⏳ Cargando repositorios desde GitHub...")
         self.query_one(RepoDetail).show_empty()
+        self.query_one(ReleasesPanel).show_empty()
         self.query_one(CommitsPanel).show_empty()
         logger.info("Recargando repositorios desde GitHub...")
 
@@ -137,12 +141,15 @@ class MainScreen(Screen):
     # ------------------------------------------------------------------ #
     def on_repo_highlighted(self, event: RepoHighlighted) -> None:
         detail = self.query_one(RepoDetail)
+        releases = self.query_one(ReleasesPanel)
         commits = self.query_one(CommitsPanel)
         if event.repo is None:
             detail.show_empty()
+            releases.show_empty()
             commits.show_empty()
         else:
             detail.show(event.repo)
+            releases.show_for(event.repo)
             commits.show_for(event.repo)
 
     # ------------------------------------------------------------------ #

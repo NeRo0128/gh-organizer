@@ -36,3 +36,15 @@ class Commit:
     message: str  # primera línea
     author: str
     date: str  # ISO 8601
+
+
+@dataclass
+class Release:
+    """Una release publicada en GitHub."""
+
+    tag_name: str  # "v1.2.0"
+    name: str  # nombre de la release (puede ser igual al tag)
+    published_at: str  # ISO 8601
+    body: str  # notas (solo primera línea útil)
+    prerelease: bool
+    html_url: str
