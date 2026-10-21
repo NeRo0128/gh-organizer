@@ -1,18 +1,3 @@
-/* src/github_organizer/ui/styles/settings.tcss
- * Pantalla de configuración con tabs horizontales.
- *
- *   ┌─ Topbar ───────────────────────────────────────────┐
- *   │   Configuración · Tema: GitHub Dark                │
- *   ├────────────────────────────────────────────────────┤
- *   │  [ Apariencia ] [ Repositorios ] [ Organización ]  │
- *   ├────────────────────────────────────────────────────┤
- *   │┌─ Apariencia ─────────────────────────────────────┐│
- *   ││ Tema           ‹ GitHub Dark ›                   ││
- *   ││ Modo árbol     ‹ Recordar ›  ⏳                   ││
- *   │└──────────────────────────────────────────────────┘│
- *   └────────────────────────────────────────────────────┘
- */
-
 SettingsScreen {
     layout: vertical;
 }

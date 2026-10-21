@@ -1,5 +1,5 @@
 /* src/github_organizer/ui/styles/main.tcss
- * MainScreen: topbar + árbol (1/3) + detalle/releases (2fr + 1fr) + commits.
+ * MainScreen: topbar + árbol (45%) + detalle/releases (55%) + commits (1/3).
  */
 
 MainScreen {
@@ -17,8 +17,21 @@ MainScreen {
     height: 1fr;
 }
 
+/* ── Panel Izquierdo (Árbol) ────────────────────────────────────────── */
+
+#tree-panel {
+    width: 30%;
+    height: 1fr;
+}
+
+#search-input {
+    height: 3;
+    margin: 0 0 1 0;
+}
+
 RepoTree {
     width: 1fr;
+    height: 1fr;
     border: round $primary;
     border-title-color: $accent;
     border-title-style: bold;
@@ -40,13 +53,24 @@ RepoTree > .tree--guides {
     color: $secondary;
 }
 
+/* ── Panel Derecho (Detalles, Releases, Commits) ────────────────────── */
+
 #detail-panel {
-    width: 2fr;
+    width: 70%;
+    height: 1fr;
 }
 
+/* La fila superior toma 2/3 del alto */
 #detail-row {
     height: 2fr;
 }
+
+/* El panel de commits toma 1/3 del alto */
+#commits-panel {
+    height: 1fr;
+}
+
+/* ── Estilos de los Widgets del panel derecho ───────────────────────── */
 
 RepoDetail {
     width: 2fr;
@@ -69,6 +93,7 @@ ReleasesPanel {
 }
 
 CommitsPanel {
+    width: 1fr;
     height: 1fr;
     border: round $accent;
     border-title-color: $accent;
