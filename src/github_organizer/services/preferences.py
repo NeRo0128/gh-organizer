@@ -1,20 +1,12 @@
 # src/github_organizer/services/preferences.py
-"""Preferencias del usuario persistidas en preferences.json.
+"""Preferencias del usuario persistidas en config.toml."""
 
-Esquema plano: un único JSON con todas las claves. La estructura es
-tolerante — si falta una clave, se usa DEFAULTS. Si el JSON tiene claves
-desconocidas, se preservan al guardar.
-"""
-
-import json
 import logging
 from typing import Any
 
-from github_organizer.services.settings import DATA_DIR, ensure_dirs
+from github_organizer.services import config
 
 logger = logging.getLogger(__name__)
-
-PREFERENCES_FILE = DATA_DIR / "preferences.json"
 
 # ──────────────────────────────────────────────────────────────────── #
 #  Esquema
@@ -39,8 +31,6 @@ DEFAULTS: dict[str, Any] = {
     "confirm_delete_folder": True,
 }
 
-# Ajustes cuya UI existe pero cuya lógica aún no está conectada.
-# En Settings se muestran en color distinto para saber qué queda por hacer.
 PENDING_SETTINGS: frozenset[str] = frozenset(
     {
         "tree_mode",
@@ -72,23 +62,10 @@ VALID_TREE_MODES: tuple[str, ...] = ("remember", "expanded", "collapsed")
 #  Carga / guardado
 # ──────────────────────────────────────────────────────────────────── #
 def load_all() -> dict[str, Any]:
-    """Devuelve el dict de preferencias con DEFAULTS aplicados para claves faltantes."""
-    ensure_dirs()
-    if not PREFERENCES_FILE.exists():
-        return dict(DEFAULTS)
+    """Devuelve el dict de preferencias con DEFAULTS aplicados."""
+    data = config.load().get("preferences", {})
 
-    try:
-        with PREFERENCES_FILE.open("r", encoding="utf-8") as f:
-            data = json.load(f)
-    except (OSError, json.JSONDecodeError) as e:
-        logger.error("Error leyendo preferences.json: %s", e)
-        return dict(DEFAULTS)
-
-    if not isinstance(data, dict):
-        logger.warning("preferences.json no es un dict, usando defaults")
-        return dict(DEFAULTS)
-
-    # Migración suave: claves faltantes → defaults; se preservan desconocidas
+    # Migración suave
     merged = dict(DEFAULTS)
     merged.update({k: v for k, v in data.items() if v is not None})
 
@@ -102,14 +79,11 @@ def load_all() -> dict[str, Any]:
 
 
 def save_all(data: dict[str, Any]) -> None:
-    """Guarda el dict entero de preferencias."""
-    ensure_dirs()
-    try:
-        with PREFERENCES_FILE.open("w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-        logger.debug("preferences guardadas: %d claves", len(data))
-    except OSError as e:
-        logger.error("Error escribiendo preferences.json: %s", e)
+    """Guarda el dict entero de preferencias en config.toml."""
+    full_config = config.load()
+    full_config["preferences"] = data
+    config.save(full_config)
+    logger.debug("preferences guardadas en config.toml")
 
 
 # ──────────────────────────────────────────────────────────────────── #
@@ -131,13 +105,11 @@ def set_value(key: str, value: Any) -> None:
 
 
 def reset() -> None:
-    """Restaura todas las preferencias a DEFAULTS."""
     save_all(dict(DEFAULTS))
     logger.info("Preferencias reseteadas a defaults")
 
 
 def is_pending(key: str) -> bool:
-    """True si el ajuste existe en la UI pero su lógica no está conectada."""
     return key in PENDING_SETTINGS
 
 

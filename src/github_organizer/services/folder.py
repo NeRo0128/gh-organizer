@@ -2,8 +2,8 @@
 import logging
 
 from github_organizer.core import Repo
+from github_organizer.services import config
 from github_organizer.services.organizer import Strategy
-from github_organizer.services.settings import load_folders, save_folders
 
 logger = logging.getLogger(__name__)
 
@@ -14,9 +14,15 @@ class FolderManager:
     """Gestiona la organización personalizada de repositorios en carpetas."""
 
     def __init__(self) -> None:
-        self._data: dict[str, list[str]] = load_folders()
+        self._data: dict[str, list[str]] = config.load().get("folders", {})
         self._ensure_defaults()
         logger.debug("FolderManager inicializado con %d carpetas", len(self._data))
+
+    def _save(self) -> None:
+        """Guarda solo la sección de carpetas en el config global."""
+        full_config = config.load()
+        full_config["folders"] = self._data
+        config.save(full_config)
 
     def _ensure_defaults(self) -> None:
         """Crea las carpetas por defecto si el archivo está vacío (primera ejecución)."""
@@ -27,7 +33,7 @@ class FolderManager:
         )
         for name in DEFAULT_FOLDERS:
             self._data[name] = []
-        save_folders(self._data)
+        self._save()
 
     # ------------------------------------------------------------------ #
     #  Lecturas
@@ -55,13 +61,13 @@ class FolderManager:
         logger.debug("assign_repo(%r, %r)", repo_name, folder_path)
         self._remove_from_all(repo_name)
         self._data.setdefault(folder_path, []).append(repo_name)
-        save_folders(self._data)
+        self._save()
         logger.info("Repo %r asignado a %r", repo_name, folder_path)
 
     def remove_repo(self, repo_name: str) -> None:
         logger.debug("remove_repo(%r)", repo_name)
         self._remove_from_all(repo_name)
-        save_folders(self._data)
+        self._save()
         logger.info("Repo %r desasignado", repo_name)
 
     def _remove_from_all(self, repo_name: str) -> None:
@@ -82,7 +88,7 @@ class FolderManager:
                 self._data[partial] = []
                 created.append(partial)
         if created:
-            save_folders(self._data)
+            self._save()
             logger.info("Carpetas creadas: %s", created)
         else:
             logger.debug("create_folder: %r ya existía", folder_path)
@@ -116,7 +122,7 @@ class FolderManager:
                 new_data[path] = repos
 
         self._data = new_data
-        save_folders(self._data)
+        self._save()
         logger.info("Carpeta renombrada: %r → %r", old_path, new_path)
         return new_path
 
@@ -125,7 +131,7 @@ class FolderManager:
         to_delete = [p for p in self._data if p == path or p.startswith(path + "/")]
         for p in to_delete:
             del self._data[p]
-        save_folders(self._data)
+        self._save()
         logger.info("Carpetas eliminadas: %s", to_delete)
 
     def count_descendants(self, path: str) -> tuple[int, int]:
@@ -170,7 +176,7 @@ class FolderManager:
             for name in repo_names:
                 self._data[folder].append(name)
 
-        save_folders(self._data)
+        self._save()
         new_folders = set(self._data.keys()) - folders_before
         logger.info(
             "apply_strategy: %d repos movidos, %d carpetas nuevas",
