@@ -9,11 +9,9 @@
 
 ---
 
-## 📸 Screenshot
+## 📸 Preview
 
-> **Note:** Demo GIF of the TUI in action goes here.
->
-> `![gh-organizer: main view with collections panel on the left, repository list in the center, and details panel with recent commits and releases on the right](docs/assets/demo.gif)`
+![gh-organizer: main view with collections panel on the left, repository list in the center, and details panel with recent commits and releases on the right](docs/assets/image.png)
 
 ---
 

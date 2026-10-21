@@ -1,0 +1,84 @@
+name: Build and Release Binaries
+
+on:
+  push:
+    tags:
+      - "v*" # Se activa solo con tags como v1.0.0
+
+permissions:
+  contents: write # Necesario para crear/actualizar el Release
+
+jobs:
+  build-and-release:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: gh-organizer-linux
+            asset_name: gh-organizer-linux
+          - os: windows-latest
+            artifact_name: gh-organizer-windows.exe
+            asset_name: gh-organizer-windows.exe
+          - os: macos-latest
+            artifact_name: gh-organizer-macos
+            asset_name: gh-organizer-macos
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Build binary with PyInstaller
+        shell: bash
+        run: |
+          # Instalamos PyInstaller en el entorno de uv
+          uv add --dev pyinstaller
+
+          # Compilamos. Usamos --add-data para incluir los archivos .tcss
+          # (Ajusta la ruta si tus .tcss están en otra carpeta)
+          uv run pyinstaller --onefile \
+            --name "${{ matrix.artifact_name }}" \
+            --add-data "src/gh_organizer/ui/styles:gh_organizer/ui/styles" \
+            --add-data "src/gh_organizer/ui/auth.tcss:gh_organizer/ui" \
+            --collect-all textual \
+            --collect-all pygithub \
+            --collect-all keyring \
+            --collect-all nerdfont \
+            --collect-all tomli_w \
+            src/gh_organizer/__main__.py
+
+      - name: Prepare asset
+        shell: bash
+        run: |
+          # Movemos el binario generado a una carpeta limpia
+          mkdir -p release
+          # En Windows el binario tiene .exe, en Linux/Mac no
+          if [ -f "dist/${{ matrix.artifact_name }}" ]; then
+            cp "dist/${{ matrix.artifact_name }}" "release/${{ matrix.asset_name }}"
+          elif [ -f "dist/${{ matrix.artifact_name }}.exe" ]; then
+            cp "dist/${{ matrix.artifact_name }}.exe" "release/${{ matrix.asset_name }}"
+          else
+            echo "Error: No se encontró el binario en dist/"
+            ls -la dist/
+            exit 1
+          fi
+
+      - name: Upload binaries to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/${{ matrix.asset_name }}
+          generate_release_notes: true
+          # Si ya creaste el release manualmente, esto lo actualizará con el binario
+          # Si no existe, lo creará automáticamente.
