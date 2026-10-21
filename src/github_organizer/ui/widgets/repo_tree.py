@@ -9,10 +9,11 @@ from textual.widgets.tree import TreeNode
 
 from github_organizer.core import Repo
 from github_organizer.services import FolderManager
+from github_organizer.services.preferences import get as pref_get
 from github_organizer.services.tree_state import (
-    DEFAULT_MODE,
     MODE_COLLAPSED,
     MODE_EXPANDED,
+    MODE_REMEMBER,
     load_expanded_paths,
     save_expanded_paths,
 )
@@ -29,13 +30,17 @@ logger = logging.getLogger(__name__)
 
 
 class RepoHighlighted(Message):
-    """Emitido cuando el cursor del árbol se posa sobre un nodo.
-
-    - `repo` es un `Repo` si el nodo es un repositorio.
-    - `repo` es `None` si el nodo es una carpeta, un separador o vacío.
-    """
+    """Emitido cuando el cursor del árbol se posa sobre un nodo."""
 
     def __init__(self, repo: Repo | None) -> None:
+        self.repo = repo
+        super().__init__()
+
+
+class RepoActivated(Message):
+    """Emitido cuando el usuario pulsa Enter sobre un repo."""
+
+    def __init__(self, repo: Repo) -> None:
         self.repo = repo
         super().__init__()
 
@@ -48,12 +53,15 @@ class RepoTree(Tree):
         self.show_root = False
         self.border_title = " Repositorios "
         self._expanded_paths: set[str] = self._load_initial_paths()
+        # 👈 Fuente de verdad: datos sin filtrar
+        self._all_repos: list[Repo] = []
+        self._all_folder_data: dict[str, list[str]] = {}
 
     # ---------------------------------------------------------------- #
     #  Estado de expansión
     # ---------------------------------------------------------------- #
     def _load_initial_paths(self) -> set[str]:
-        mode = DEFAULT_MODE
+        mode = pref_get("tree_mode", MODE_REMEMBER)
         if mode == MODE_COLLAPSED:
             logger.debug("tree_state: modo collapsed")
             return set()
@@ -81,14 +89,59 @@ class RepoTree(Tree):
         save_expanded_paths(self._expanded_paths)
 
     # ---------------------------------------------------------------- #
-    #  Construcción
+    #  API pública: rebuild (guarda datos) y filter (renderiza)
     # ---------------------------------------------------------------- #
     def rebuild(
         self,
         repos: list[Repo],
         folder_data: dict[str, list[str]],
     ) -> None:
-        """Reconstruye el árbol desde datos (no llama a GitHub)."""
+        """Actualiza la fuente de verdad y renderiza SIN filtro."""
+        logger.debug("rebuild: %d repos, %d carpetas", len(repos), len(folder_data))
+        self._all_repos = list(repos)
+        self._all_folder_data = {k: list(v) for k, v in folder_data.items()}
+        self._draw(self._all_repos, self._all_folder_data)  # 👈 antes _render
+
+    def filter(self, query: str) -> None:
+        """Aplica un filtro sobre los datos ORIGINALES y renderiza."""
+        query = query.strip().lower()
+
+        if not query:
+            self._draw(self._all_repos, self._all_folder_data)  # 👈 antes _render
+            return
+
+        # 1. Filtrar repos
+        filtered_repos = [
+            r
+            for r in self._all_repos
+            if query in r.name.lower() or query in (r.language or "").lower()
+        ]
+
+        if not filtered_repos:
+            self.clear()
+            self.root.add_leaf("[dim italic]Sin resultados[/dim italic]")
+            return
+
+        # 2. Filtrar carpetas: solo las que tengan algún repo filtrado
+        filtered_names = {r.name for r in filtered_repos}
+        new_folder_data: dict[str, list[str]] = {}
+        for folder, repo_names in self._all_folder_data.items():
+            matching = [name for name in repo_names if name in filtered_names]
+            if matching:
+                new_folder_data[folder] = matching
+
+        # 3. Renderizar con los datos filtrados (sin tocar los originales)
+        self._draw(filtered_repos, new_folder_data)  # 👈 antes _render
+
+    # ---------------------------------------------------------------- #
+    #  Render interno
+    # ---------------------------------------------------------------- #
+    def _draw(  # 👈 antes _render
+        self,
+        repos: list[Repo],
+        folder_data: dict[str, list[str]],
+    ) -> None:
+        """Dibuja el árbol con los datos dados (no modifica _all_*)."""
         self.clear()
 
         assigned: set[str] = set()
@@ -97,7 +150,6 @@ class RepoTree(Tree):
         unassigned = [r for r in repos if r.name not in assigned]
         repos_by_name = {r.name: r for r in repos}
 
-        # Limpieza: descartar rutas que ya no existen (incluye padres implícitos)
         self._expanded_paths &= self._all_valid_paths(folder_data)
         save_expanded_paths(self._expanded_paths)
 
@@ -118,7 +170,7 @@ class RepoTree(Tree):
 
         self.border_title = f" Repositorios · {len(repos)} "
         logger.debug(
-            "Árbol reconstruido (%d repos, %d carpetas, %d expandidas)",
+            "Render: %d repos, %d carpetas, %d expandidas",
             len(repos),
             len(folder_data),
             len(self._expanded_paths),
@@ -165,7 +217,6 @@ class RepoTree(Tree):
 
     @staticmethod
     def _all_valid_paths(folder_data: dict[str, list[str]]) -> set[str]:
-        """Todas las rutas válidas, incluyendo padres implícitos."""
         paths: set[str] = set()
         for path in folder_data:
             parts = path.split("/")
@@ -175,10 +226,6 @@ class RepoTree(Tree):
 
     @staticmethod
     def paths_with_content(folder_data: dict[str, list[str]]) -> set[str]:
-        """Rutas con repos (o con algún descendiente con repos) más sus ancestros.
-
-        Útil para expandir solo lo que tiene contenido tras auto-organizar.
-        """
         paths: set[str] = set()
         for path, repos in folder_data.items():
             if not repos:
@@ -206,10 +253,9 @@ class RepoTree(Tree):
         self.post_message(RepoHighlighted(repo))
 
     def on_tree_node_selected(self, event: Tree.NodeSelected) -> None:
-        # Selección con Enter: mismo efecto que highlight para el detalle
         node = event.node
-        repo = node.data if isinstance(node.data, Repo) else None
-        self.post_message(RepoHighlighted(repo))
+        if isinstance(node.data, Repo):
+            self.post_message(RepoActivated(node.data))
 
     def on_key(self, event) -> None:
         if not self.has_focus:

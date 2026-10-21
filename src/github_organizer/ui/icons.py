@@ -62,3 +62,5 @@ ICON_PALETTE = icon("fa-palette", "🎨")  # Apariencia
 ICON_COG = icon("fa-cog", "⚙️")  # Organización
 ICON_KEY = icon("fa-key", "🔑")  # Cuenta
 ICON_SLIDERS = icon("fa-sliders", "⚙️")  # Configuración topbar
+
+ICON_SEARCH = icon("cod-search", "Search")  # o "fa-search" si prefieres FontAwesome
