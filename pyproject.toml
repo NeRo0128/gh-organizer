@@ -4,10 +4,8 @@ version = "1.0.0"
 description = "Una TUI para organizar tus repositorios de GitHub en colecciones personalizadas"
 readme = "README.md"
 authors = [{ name = "Nero", email = "castillovegarodolfogilberto@gmail.com" }]
-license = { text = "MIT" }                                                                      # 👈 Añadido (cambia a GPL si prefieres)
+license = { text = "MIT" }
 requires-python = ">=3.14"
-
-# 👈 Añadido requests
 dependencies = [
     "keyring>=25.7.0",
     "nerdfont>=3.4.0.post1",
@@ -16,19 +14,6 @@ dependencies = [
     "textual>=8.2.8",
     "tomli-w>=1.2.0",
 ]
-
-# 👈 Unificado el nombre del comando al del proyecto
-[project.scripts]
-gh-organizer = "github_organizer.__main__:main"
-github-organizer = "github_organizer.__main__:main" # Alias por si acaso
-
-# 👈 Añadido para que se vea profesional en GitHub/PyPI
-[project.urls]
-Homepage = "https://github.com/NeRo0128/gh-organizer"
-Repository = "https://github.com/NeRo0128/gh-organizer"
-Issues = "https://github.com/NeRo0128/gh-organizer/issues"
-
-# 👈 Clasificadores estándar de Python
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
@@ -40,31 +25,14 @@ classifiers = [
     "Topic :: Utilities",
 ]
 
+[project.scripts]
+gh-organizer = "gh_organizer.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/NeRo0128/gh-organizer"
+Repository = "https://github.com/NeRo0128/gh-organizer"
+Issues = "https://github.com/NeRo0128/gh-organizer/issues"
+
 [build-system]
 requires = ["uv_build>=0.12.5,<0.13.0"]
 build-backend = "uv_build"
-
-[dependency-groups]
-dev = ["pytest>=9.1.1", "pytest-cov>=6.0.0", "ruff>=0.17.0"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "-ra --strict-markers --strict-config"
-filterwarnings = ["error", "ignore::DeprecationWarning:pygithub.*"]
-
-[tool.coverage.run]
-source = ["src/github_organizer"]
-omit = ["*/ui/*", "*/__main__.py", "*/app.py"]
-
-[tool.coverage.report]
-show_missing = true
-skip_covered = true
-
-# 👈 Configuración básica de Ruff para mantener el código limpio
-[tool.ruff]
-line-length = 88
-target-version = "py314"
-
-[tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
-ignore = ["E501"]                                 # Ignorar líneas largas porque la TUI tiene mucho texto
