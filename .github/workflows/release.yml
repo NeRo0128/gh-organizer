@@ -3,10 +3,10 @@ name: Build and Release Binaries
 "on":
   push:
     tags:
-      - "v*" # Se activa solo con tags como v1.0.0
+      - "v*"
 
 permissions:
-  contents: write # Necesario para crear/actualizar el Release
+  contents: write
 
 jobs:
   build-and-release:
@@ -40,14 +40,22 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
+      # ---- GENERAR APPIMAGE (Solo en Linux) ----
+      - name: Build AppImage
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfuse2 file zsync
+          uv add --dev appimage
+          uv run python -m appimage.ctl init
+          uv run python -m appimage.ctl lock
+          uv run python -m appimage.ctl build
+
+      # ---- GENERAR BINARIO CON PYINSTALLER ----
       - name: Build binary with PyInstaller
         shell: bash
         run: |
-          # Instalamos PyInstaller en el entorno de uv
           uv add --dev pyinstaller
-
-          # Compilamos. Usamos --add-data para incluir los archivos .tcss
-          # (Ajusta la ruta si tus .tcss están en otra carpeta)
           uv run pyinstaller --onefile \
             --name "${{ matrix.artifact_name }}" \
             --add-data "src/gh_organizer/ui/styles:gh_organizer/ui/styles" \
@@ -62,9 +70,7 @@ jobs:
       - name: Prepare asset
         shell: bash
         run: |
-          # Movemos el binario generado a una carpeta limpia
           mkdir -p release
-          # En Windows el binario tiene .exe, en Linux/Mac no
           if [ -f "dist/${{ matrix.artifact_name }}" ]; then
             cp "dist/${{ matrix.artifact_name }}" "release/${{ matrix.asset_name }}"
           elif [ -f "dist/${{ matrix.artifact_name }}.exe" ]; then
@@ -75,10 +81,11 @@ jobs:
             exit 1
           fi
 
+      # ---- SUBIR AL RELEASE ----
       - name: Upload binaries to Release
         uses: softprops/action-gh-release@v2
         with:
-          files: release/${{ matrix.asset_name }}
+          files: |
+            release/${{ matrix.asset_name }}
+            dist/*.AppImage
           generate_release_notes: true
-          # Si ya creaste el release manualmente, esto lo actualizará con el binario
-          # Si no existe, lo creará automáticamente.
