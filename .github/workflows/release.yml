@@ -1,6 +1,6 @@
 name: Build and Release Binaries
 
-on:
+"on":
   push:
     tags:
       - "v*" # Se activa solo con tags como v1.0.0
