@@ -43,17 +43,14 @@ packages = ["src/gh_organizer"]
 include = ["src/gh_organizer/**/*.tcss"]
 
 [tool.hatch.build.targets.wheel.force-include]
-"src/gh_organizer/ui/auth.tcss" = "gh_organizer/ui/auth.tcss"
+"src/gh_organizer/ui/styles/auth.tcss" = "gh_organizer/ui/styles/auth.tcss"
 "src/gh_organizer/ui/styles/base.tcss" = "gh_organizer/ui/styles/base.tcss"
 "src/gh_organizer/ui/styles/main.tcss" = "gh_organizer/ui/styles/main.tcss"
 "src/gh_organizer/ui/styles/modals.tcss" = "gh_organizer/ui/styles/modals.tcss"
 "src/gh_organizer/ui/styles/settings.tcss" = "gh_organizer/ui/styles/settings.tcss"
 
 [dependency-groups]
-dev = [
-    "appimage>=4.0.1",
-    "pytest>=9.2.0",
-]
+dev = ["appimage>=4.0.1", "pytest>=9.2.0"]
 
 [tool.appimage]
 build_pylock = "pylock.build.toml"
