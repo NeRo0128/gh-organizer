@@ -1,0 +1,574 @@
+# Catálogo de traducciones de GitHub Organizer.
+# Idioma fuente: español (los msgid son el texto del código).
+# Generado/editado a mano; compilar con: uv run python scripts/i18n.py compile
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gh-organizer\n"
+"Report-Msgid-Bugs-To: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "\n[dim]⚠️ %(var)s está definido y tiene prioridad sobre el token guardado.[/dim]"
+msgstr "\n[dim]⚠️ %(var)s is set and takes precedence over the saved token.[/dim]"
+
+msgid "%(count)s repos cargados"
+msgstr "%(count)s repos loaded"
+
+msgid "%(name)s no está asignado a ninguna carpeta."
+msgstr "%(name)s is not assigned to any folder."
+
+msgid "(Sin atajos)"
+msgstr "(No shortcuts)"
+
+msgid "(bloqueará funciones futuras)"
+msgstr "(will block future features)"
+
+msgid "(no encontrado)"
+msgstr "(not found)"
+
+msgid "(raíz)"
+msgstr "(root)"
+
+msgid "(sin colecciones todavía)"
+msgstr "(no collections yet)"
+
+msgid "(vacía)"
+msgstr "(empty)"
+
+msgid "Actualizado"
+msgstr "Updated"
+
+msgid "Agrupa los repos en carpetas según su lenguaje principal"
+msgstr "Groups repos into folders by their main language"
+
+msgid "Ajustes"
+msgstr "Settings"
+
+msgid "Ancho del árbol"
+msgstr "Tree width"
+
+msgid "Animaciones"
+msgstr "Animations"
+
+msgid "Apariencia"
+msgstr "Appearance"
+
+msgid "Aplicar estrategia"
+msgstr "Apply strategy"
+
+msgid "Atajos de teclado"
+msgstr "Keyboard shortcuts"
+
+msgid "Auto-organizar"
+msgstr "Auto-organize"
+
+msgid "Auto-organizar repositorios"
+msgstr "Auto-organize repositories"
+
+msgid "Automático"
+msgstr "Automatic"
+
+msgid "Ayuda"
+msgstr "Help"
+
+msgid "Bajar"
+msgstr "Move down"
+
+msgid "Buscar"
+msgstr "Search"
+
+msgid "Buscar repo..."
+msgstr "Search repo..."
+
+msgid "Cambiar panel"
+msgstr "Switch panel"
+
+msgid "Cancelar"
+msgstr "Cancel"
+
+msgid "Carga los repositorios primero (pulsa r)."
+msgstr "Load repositories first (press r)."
+
+msgid "Cargando commits..."
+msgstr "Loading commits..."
+
+msgid "Cargando releases..."
+msgstr "Loading releases..."
+
+msgid "Cargando repositorios..."
+msgstr "Loading repositories..."
+
+msgid "Cerrar"
+msgstr "Close"
+
+msgid "Clonar"
+msgstr "Clone"
+
+msgid "Colapsar"
+msgstr "Collapse"
+
+msgid "Colapsar todo"
+msgstr "Collapse all"
+
+msgid "Colecciones"
+msgstr "Collections"
+
+msgid "Commits a mostrar"
+msgstr "Commits to show"
+
+msgid "Configuración"
+msgstr "Settings"
+
+msgid "Confirmar antes de eliminar"
+msgstr "Confirm before deleting"
+
+msgid "Confirmar antes de organizar"
+msgstr "Confirm before organizing"
+
+msgid "Cuenta"
+msgstr "Account"
+
+msgid "Detalles"
+msgstr "Details"
+
+msgid "Directorio de clones"
+msgstr "Clone directory"
+
+msgid "Elige cómo agrupar los repos sin asignar:"
+msgstr "Choose how to group unassigned repos:"
+
+msgid "Eliminar"
+msgstr "Delete"
+
+msgid "Enter para abrir GitHub en el navegador"
+msgstr "Enter to open GitHub in your browser"
+
+msgid "Enter para eliminar el token guardado"
+msgstr "Enter to delete the saved token"
+
+msgid "Espacio"
+msgstr "Space"
+
+msgid "Español"
+msgstr "Spanish"
+
+msgid "Este repositorio no tiene commits."
+msgstr "This repository has no commits."
+
+msgid "Este repositorio no tiene releases publicadas."
+msgstr "This repository has no published releases."
+
+msgid "Estrategia por defecto"
+msgstr "Default strategy"
+
+msgid "Estrellas"
+msgstr "Stars"
+
+msgid "Excluir archivados"
+msgstr "Exclude archived"
+
+msgid "Excluir forks"
+msgstr "Exclude forks"
+
+msgid "Expandir"
+msgstr "Expand"
+
+msgid "Expandir todo"
+msgstr "Expand all"
+
+msgid "Gestor de colecciones"
+msgstr "Collection manager"
+
+msgid "Gists"
+msgstr "Gists"
+
+msgid "GitHub Actions"
+msgstr "GitHub Actions"
+
+msgid "Global"
+msgstr "Global"
+
+msgid "Guardar token"
+msgstr "Save token"
+
+msgid "Idioma"
+msgstr "Language"
+
+msgid "Iniciando..."
+msgstr "Starting..."
+
+msgid "Lenguaje"
+msgstr "Language"
+
+msgid "Listo"
+msgstr "Ready"
+
+msgid "Modo del árbol al abrir"
+msgstr "Tree mode on open"
+
+msgid "Mostrar iconos Nerd Font"
+msgstr "Show Nerd Font icons"
+
+msgid "Mover"
+msgstr "Move"
+
+msgid "Mover repositorio"
+msgstr "Move repository"
+
+msgid "No había repos sin asignar para organizar."
+msgstr "There were no unassigned repos to organize."
+
+msgid "No hay repos sin asignar."
+msgstr "There are no unassigned repos."
+
+msgid "No hay token guardado."
+msgstr "No saved token."
+
+msgid "Nombre"
+msgstr "Name"
+
+msgid "Nombre de la nueva colección"
+msgstr "New collection name"
+
+msgid "Nombre de la nueva colección raíz"
+msgstr "New root collection name"
+
+msgid "Nombre en la raíz"
+msgstr "Name at root"
+
+msgid "Notificaciones"
+msgstr "Notifications"
+
+msgid "Nueva colección"
+msgstr "New collection"
+
+msgid "Nueva colección dentro de %(path)s"
+msgstr "New collection inside %(path)s"
+
+msgid "Nueva hija"
+msgstr "New child"
+
+msgid "Nueva raíz"
+msgstr "New root"
+
+msgid "Ordenar repos por"
+msgstr "Sort repos by"
+
+msgid "Organiza tus repositorios en carpetas personalizadas"
+msgstr "Organize your repositories into custom folders"
+
+msgid "Organizaciones"
+msgstr "Organizations"
+
+msgid "Organización"
+msgstr "Organization"
+
+msgid "Perfil del usuario"
+msgstr "User profile"
+
+msgid "Permisos detectados"
+msgstr "Detected permissions"
+
+msgid "Por lenguaje"
+msgstr "By language"
+
+msgid "Por visibilidad"
+msgstr "By visibility"
+
+msgid "Principal"
+msgstr "Main"
+
+msgid "Privado"
+msgstr "Private"
+
+msgid "Pulsa [b]Esc[/b] o [b]?[/b] para cerrar"
+msgstr "Press [b]Esc[/b] or [b]?[/b] to close"
+
+msgid "Público"
+msgstr "Public"
+
+msgid "Quitar"
+msgstr "Unassign"
+
+msgid "Recargar"
+msgstr "Reload"
+
+msgid "Recordar"
+msgstr "Remember"
+
+msgid "Releases a mostrar"
+msgstr "Releases to show"
+
+msgid "Renombrar"
+msgstr "Rename"
+
+msgid "Repos que se verán afectados:"
+msgstr "Repos that will be affected:"
+
+msgid "Repos ya asignados (no se tocan):"
+msgstr "Repos already assigned (untouched):"
+
+msgid "Repositorios"
+msgstr "Repositories"
+
+msgid "Repositorios (públicos y privados)"
+msgstr "Repositories (public and private)"
+
+msgid "Ruta"
+msgstr "Path"
+
+msgid "Salir"
+msgstr "Quit"
+
+msgid "Selecciona un repositorio para ver sus commits."
+msgstr "Select a repository to see its commits."
+
+msgid "Selecciona un repositorio para ver sus detalles."
+msgstr "Select a repository to see its details."
+
+msgid "Selecciona un repositorio para ver sus releases."
+msgstr "Select a repository to see its releases."
+
+msgid "Selecciona un repositorio primero."
+msgstr "Select a repository first."
+
+msgid "Selecciona una carpeta (no la raíz)."
+msgstr "Select a folder (not the root)."
+
+msgid "Separa por visibilidad y anida el lenguaje dentro de cada grupo"
+msgstr "Splits by visibility and nests the language inside each group"
+
+msgid "Separa repos públicos y privados"
+msgstr "Separates public and private repos"
+
+msgid "Sin asignar"
+msgstr "Unassigned"
+
+msgid "Sin descripción"
+msgstr "No description"
+
+msgid "Sin resultados"
+msgstr "No results"
+
+msgid "Solo repos públicos"
+msgstr "Public repos only"
+
+msgid "Subir"
+msgstr "Move up"
+
+msgid "Tema"
+msgstr "Theme"
+
+msgid "Token"
+msgstr "Token"
+
+msgid "Token actual"
+msgstr "Current token"
+
+msgid "Visibilidad"
+msgstr "Visibility"
+
+msgid "Visibilidad + lenguaje"
+msgstr "Visibility + language"
+
+msgid "Volver"
+msgstr "Back"
+
+msgid "[b]Enter[/b]: confirmar · [b]Esc[/b]: cancelar"
+msgstr "[b]Enter[/b]: confirm · [b]Esc[/b]: cancel"
+
+msgid "[b]Enter[/b]: crear y mover aquí · [b]Tab[/b]: volver al árbol"
+msgstr "[b]Enter[/b]: create and move here · [b]Tab[/b]: back to tree"
+
+msgid "[b]Enter[/b]: crear · [b]Tab[/b]: volver al árbol · [b]Esc[/b]: limpiar"
+msgstr "[b]Enter[/b]: create · [b]Tab[/b]: back to tree · [b]Esc[/b]: clear"
+
+msgid "[b]Enter[/b]: mover aquí · [b]n[/b]: nueva hija · [b]a[/b]: nueva raíz · [b]r[/b]: rename · [b]d[/b]: del · [b]Esc[/b]: cerrar"
+msgstr "[b]Enter[/b]: move here · [b]n[/b]: new child · [b]a[/b]: new root · [b]r[/b]: rename · [b]d[/b]: delete · [b]Esc[/b]: close"
+
+msgid "[b]n[/b]: nueva hija · [b]a[/b]: nueva raíz · [b]Tab[/b]: escribir · [b]r[/b]: rename · [b]d[/b]: del · [b]Esc[/b]: cerrar"
+msgstr "[b]n[/b]: new child · [b]a[/b]: new root · [b]Tab[/b]: type · [b]r[/b]: rename · [b]d[/b]: delete · [b]Esc[/b]: close"
+
+msgid "[b]y[/b]: eliminar · [b]n[/b]/[b]Esc[/b]: cancelar"
+msgstr "[b]y[/b]: delete · [b]n[/b]/[b]Esc[/b]: cancel"
+
+msgid "[b]↑/↓[/b]: elegir · [b]Enter[/b]: aplicar · [b]Esc[/b]: cancelar"
+msgstr "[b]↑/↓[/b]: choose · [b]Enter[/b]: apply · [b]Esc[/b]: cancel"
+
+msgid "colecciones"
+msgstr "collections"
+
+msgid "no configurado"
+msgstr "not configured"
+
+msgid "repos"
+msgstr "repos"
+
+msgid "sin asignar"
+msgstr "unassigned"
+
+msgid "Últimos commits"
+msgstr "Latest commits"
+
+msgid "→ Cerrar sesión"
+msgstr "→ Sign out"
+
+msgid "→ Crear nuevo token"
+msgstr "→ Create new token"
+
+msgid "↩  %(name)s devuelto a 'Sin asignar'"
+msgstr "↩  %(name)s moved back to 'Unassigned'"
+
+msgid "⏰ El clonado tardó más de 5 minutos. Comprueba tu conexión e inténtalo de nuevo."
+msgstr "⏰ Cloning took longer than 5 minutes. Check your connection and try again."
+
+msgid "⏳ Clonando %(name)s..."
+msgstr "⏳ Cloning %(name)s..."
+
+msgid "⏳ Has alcanzado el límite de peticiones de GitHub. Espera unos minutos e inténtalo de nuevo."
+msgstr "⏳ You have reached GitHub's request limit. Wait a few minutes and try again."
+
+msgid "⏳ Validando token con GitHub..."
+msgstr "⏳ Validating token with GitHub..."
+
+msgid "⚙️ El archivo de configuración está corrupto. Se han restaurado los valores por defecto y se guardó una copia."
+msgstr "⚙️ The configuration file is corrupted. Defaults were restored and a backup was saved."
+
+msgid "⚙️ Error con la configuración de la aplicación."
+msgstr "⚙️ Application configuration error."
+
+msgid "⚙️ No se pudo guardar la configuración. Comprueba los permisos de [b]~/.config/github-organizer/[/b]"
+msgstr "⚙️ Could not save the configuration. Check the permissions of [b]~/.config/github-organizer/[/b]"
+
+msgid "⚠️  ¿Eliminar [b]%(path)s[/b]? Contiene [b]%(repos)s[/b] repos y [b]%(subs)s[/b] subcarpetas."
+msgstr "⚠️  Delete [b]%(path)s[/b]? It contains [b]%(repos)s[/b] repos and [b]%(subs)s[/b] subfolders."
+
+msgid "⚠️ Conectado como @%(login)s. %(error)s"
+msgstr "⚠️ Connected as @%(login)s. %(error)s"
+
+msgid "⚠️ El keyring del sistema no está disponible.\nEl token solo se guardará en memoria para esta sesión."
+msgstr "⚠️ The system keyring is not available.\nThe token will only be kept in memory for this session."
+
+msgid "⚠️ Falta una dependencia del sistema."
+msgstr "⚠️ A system dependency is missing."
+
+msgid "⚠️ [b]git[/b] no está instalado en tu sistema.\nInstálalo para poder clonar repositorios."
+msgstr "⚠️ [b]git[/b] is not installed on your system.\nInstall it to clone repositories."
+
+msgid "✅ %(name)s clonado en %(path)s"
+msgstr "✅ %(name)s cloned to %(path)s"
+
+msgid "✅ Conectado como @%(login)s — token guardado en el keyring."
+msgstr "✅ Connected as @%(login)s — token saved to the keyring."
+
+msgid "✅ Ya hay un token guardado. Introduce uno nuevo para reemplazarlo."
+msgstr "✅ A token is already saved. Enter a new one to replace it."
+
+msgid "✏️  Creando dentro de: [b cyan]%(parent)s[/b cyan]"
+msgstr "✏️  Creating inside: [b cyan]%(parent)s[/b cyan]"
+
+msgid "❌ El token no puede estar vacío."
+msgstr "❌ The token cannot be empty."
+
+msgid "❌ El token parece demasiado corto. Revisa que lo hayas copiado completo."
+msgstr "❌ The token looks too short. Check that you copied it completely."
+
+msgid "❌ Ha ocurrido un error inesperado."
+msgstr "❌ An unexpected error occurred."
+
+msgid "❌ No hay token. Pulsa [b]t[/b] para configurarlo."
+msgstr "❌ No token found. Press [b]t[/b] to configure one."
+
+msgid "❌ No se pudo clonar el repositorio."
+msgstr "❌ Could not clone the repository."
+
+msgid "❌ No se pudo clonar."
+msgstr "❌ Could not clone."
+
+msgid "❌ No se pudo clonar: %(detail)s"
+msgstr "❌ Could not clone: %(detail)s"
+
+msgid "❌ Token inválido o expirado. Pulsa [b]t[/b] para configurar uno nuevo."
+msgstr "❌ Invalid or expired token. Press [b]t[/b] to set a new one."
+
+msgid "🌐 Abriendo %(name)s"
+msgstr "🌐 Opening %(name)s"
+
+msgid "🌐 Abriendo GitHub en el navegador…"
+msgstr "🌐 Opening GitHub in your browser…"
+
+msgid "🌐 Idioma aplicado: %(lang)s"
+msgstr "🌐 Language applied: %(lang)s"
+
+msgid "🌐 No se pudo conectar con GitHub. Revisa tu conexión a internet."
+msgstr "🌐 Could not connect to GitHub. Check your internet connection."
+
+msgid "🎨 Tema: [b]%(theme)s[/b]"
+msgstr "🎨 Theme: [b]%(theme)s[/b]"
+
+msgid "💾 No hay suficiente espacio en disco para clonar el repositorio."
+msgstr "💾 Not enough disk space to clone the repository."
+
+msgid "📁 El nombre de la colección no puede estar vacío."
+msgstr "📁 Collection name cannot be empty."
+
+msgid "📁 No existe la colección [b]%(path)s[/b]."
+msgstr "📁 Collection [b]%(path)s[/b] does not exist."
+
+msgid "📁 No se pudo modificar la colección."
+msgstr "📁 Could not modify the collection."
+
+msgid "📁 Ya existe una colección con la ruta [b]%(path)s[/b]."
+msgstr "📁 A collection with path [b]%(path)s[/b] already exists."
+
+msgid "📂 No tienes permisos para escribir en [b]%(path)s[/b]."
+msgstr "📂 You do not have write permission on [b]%(path)s[/b]."
+
+msgid "📂 No tienes permisos para escribir."
+msgstr "📂 You do not have write permission."
+
+msgid "📂 Ya existe en %(path)s"
+msgstr "📂 Already exists at %(path)s"
+
+msgid "📂 Ya existe un repositorio en [b]%(path)s[/b]."
+msgstr "📂 A repository already exists at [b]%(path)s[/b]."
+
+msgid "📂 Ya existe un repositorio."
+msgstr "📂 A repository already exists."
+
+msgid "📍 Padre:  [dim]%(parent)s[/dim]   ✏️  Renombrando"
+msgstr "📍 Parent:  [dim]%(parent)s[/dim]   ✏️  Renaming"
+
+msgid "📍 Seleccionada: [b cyan]%(parent)s[/b cyan]"
+msgstr "📍 Selected: [b cyan]%(parent)s[/b cyan]"
+
+msgid "📦 %(moved)s repos organizados en %(folders)s carpetas nuevas"
+msgstr "📦 %(moved)s repos organized into %(folders)s new folders"
+
+msgid "📦 Mover [b cyan]%(repo)s[/b cyan] a:"
+msgstr "📦 Move [b cyan]%(repo)s[/b cyan] to:"
+
+msgid "🔑 Introduce tu Personal Access Token de GitHub"
+msgstr "🔑 Enter your GitHub Personal Access Token"
+
+msgid "🔒 El repositorio es privado. Ábrelo manualmente en GitHub."
+msgstr "🔒 The repository is private. Open it manually on GitHub."
+
+msgid "🔒 No tienes acceso a este repositorio."
+msgstr "🔒 You do not have access to this repository."
+
+msgid "🔒 No tienes acceso al repositorio [b]%(repo)s[/b]."
+msgstr "🔒 You do not have access to the [b]%(repo)s[/b] repository."
+
+msgid "🔒 Problema con tu token de GitHub."
+msgstr "🔒 There is a problem with your GitHub token."
+
+msgid "🔒 Token eliminado."
+msgstr "🔒 Token deleted."
+
+msgid "🔒 Tu token no tiene el permiso [b]%(scope)s[/b].\nEdítalo en GitHub → Settings → Developer settings → Tokens."
+msgstr "🔒 Your token lacks the [b]%(scope)s[/b] permission.\nEdit it on GitHub → Settings → Developer settings → Tokens."

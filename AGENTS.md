@@ -65,14 +65,46 @@ To get a working suite: `uv add --dev pytest`, rewrite imports, and rework
 - `.tcss` files are loaded from disk via `CSS_PATH` (`ui/styles/__init__.py`). Any new
   style file/asset must also be added to the PyInstaller `--add-data` flags in
   `.github/workflows/release.yml`, or the one-file binary crashes at startup.
+  `locales/` is already listed there — keep it that way when moving assets around.
+
+## i18n: Spanish is the msgid
+
+- `i18n.py` wraps stdlib `gettext` (no Babel, no extra dependencies). **The source
+  language is Spanish**, so every `msgid` in
+  `locales/<lang>/LC_MESSAGES/gh_organizer.po` is the literal string from the code;
+  `locales/es/` is an identity catalog and `locales/en/` holds the translations.
+  A missing entry falls back to Spanish instead of breaking the UI.
+- Translate user-visible text with `_()` imported from `gh_organizer.i18n`:
+  `self.notify(_("..."))`, `_("...") % {"path": path}` for interpolation (never
+  f-strings — the msgid must stay constant). Never concatenate translated fragments.
+- `user_message` on exceptions stays Spanish (it *is* the msgid); the UI must print
+  `error.localized_message`, which translates at render time.
+- Module-level tables (`SETTINGS_CATALOG` labels/choices, `SECTION_TITLES`,
+  `keybindings`, `STRATEGIES` names, `TOKEN_PERMISSIONS` labels) keep Spanish literals
+  and are translated where they are painted (`_(row.label)`), because they are built
+  at import time, before a language exists. Same reason `keybindings.Binding`
+  translates `description` in a property.
+- Do **not** translate data: folder names created by `services/organizer.py`
+  (`Lenguajes/…`, `Público`, `Privado`) and stored preference values
+  (`default_strategy` is the Spanish strategy name) are persisted keys.
+- `logger.*` messages stay Spanish on purpose (logs must be greppable regardless of
+  the UI language).
+- After touching a `.po`: `uv run python scripts/i18n.py compile` and commit the
+  regenerated `.mo` — `tests/test_i18n.py` fails if the binary is stale or if a
+  `_("…")` literal has no catalog entry. `scripts/i18n.py stats` lists missing
+  translations, `new-lang <code>` scaffolds a new language.
+- Language preference: `[preferences] language = "auto" | "es" | "en"`, resolved by
+  `setup_i18n()` in `app.on_mount`. Changing it in Settings applies live: the screen
+  re-renders itself and sets `app.i18n_dirty`, and `MainScreen.on_screen_resume`
+  recomposes from cache (no extra GitHub calls).
 
 ## Preferences are half-wired
 
-`services/preferences.py` defines `DEFAULTS`, but only `theme`, `tree_mode`, and
-`clone_dir` are actually consumed. Everything in `PENDING_SETTINGS` (surfaced via
-`is_pending()`) persists and appears in the Settings screen without effect — e.g.
-`commits_limit`/`releases_limit` are hardcoded `5` in the panels. Remove a key from
-`PENDING_SETTINGS` when you wire it up.
+`services/preferences.py` defines `DEFAULTS`, but only `theme`, `tree_mode`,
+`clone_dir` and `language` are actually consumed. Everything in `PENDING_SETTINGS`
+(surfaced via `is_pending()`) persists and appears in the Settings screen without
+effect — e.g. `commits_limit`/`releases_limit` are hardcoded `5` in the panels.
+Remove a key from `PENDING_SETTINGS` when you wire it up.
 
 ## Conventions
 

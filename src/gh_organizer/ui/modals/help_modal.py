@@ -3,12 +3,14 @@ import logging
 from typing import ClassVar
 
 from textual.app import ComposeResult
-from textual.binding import Binding, BindingType
+from textual.binding import BindingType
 from textual.containers import Center, Grid, Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Static
 
+from gh_organizer.i18n import _
 from gh_organizer.ui import keybindings
+from gh_organizer.ui.keybindings import Binding
 from gh_organizer.ui.styles import MODALS_CSS
 
 logger = logging.getLogger(__name__)
@@ -30,7 +32,7 @@ _KEY_DISPLAY = {
 
 def _display_key(key: str) -> str:
     if key in _KEY_DISPLAY:
-        return _KEY_DISPLAY[key]
+        return _(_KEY_DISPLAY[key])
     if key.startswith("ctrl+"):
         return "Ctrl+" + key[5:].upper()
     return key
@@ -66,22 +68,24 @@ class HelpModal(ModalScreen[None]):
 
     def compose(self) -> ComposeResult:
         with Center(), Vertical(classes="modal-box") as box:
-            box.border_title = " Ayuda "
-            yield Static("📖 Atajos de teclado", classes="modal-title")
+            box.border_title = f" {_('Ayuda')} "
+            yield Static(f"📖 {_('Atajos de teclado')}", classes="modal-title")
 
             with Grid(id="help-grid"):
-                yield Static(self._build_section("Global", keybindings.GLOBAL))
-                yield Static(self._build_section("Principal", keybindings.MAIN))
-                yield Static(self._build_section("Picker", keybindings.FOLDER_PICKER))
+                yield Static(self._build_section(_("Global"), keybindings.GLOBAL))
+                yield Static(self._build_section(_("Principal"), keybindings.MAIN))
+                yield Static(
+                    self._build_section(_("Colecciones"), keybindings.FOLDER_PICKER)
+                )
 
                 yield Static(
-                    self._build_section("Auto-organizar", keybindings.ORGANIZE)
+                    self._build_section(_("Auto-organizar"), keybindings.ORGANIZE)
                 )
-                yield Static(self._build_section("Ajustes", keybindings.SETTINGS))
+                yield Static(self._build_section(_("Ajustes"), keybindings.SETTINGS))
                 yield Static("")
 
             yield Static(
-                "[dim]Pulsa [b]Esc[/b] o [b]?[/b] para cerrar[/dim]",
+                f"[dim]{_('Pulsa [b]Esc[/b] o [b]?[/b] para cerrar')}[/dim]",
                 classes="modal-hint",
             )
 
@@ -111,6 +115,6 @@ class HelpModal(ModalScreen[None]):
 
         # Si no hay atajos, mostramos un mensaje
         if not has_items:
-            lines.append("  [dim italic](Sin atajos)[/dim italic]")
+            lines.append(f"  [dim italic]{_('(Sin atajos)')}[/dim italic]")
 
         return "\n".join(lines)

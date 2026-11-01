@@ -20,6 +20,7 @@ from gh_organizer.core.exceptions import (
     GitNotInstalledError,
     MissingTokenError,
 )
+from gh_organizer.i18n import _
 from gh_organizer.services import (
     FolderManager,
     GitHubClient,
@@ -62,10 +63,10 @@ class MainScreen(Screen):
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
-        yield Static("⏳ Iniciando...", id="topbar", classes="screen-topbar")
+        yield Static(f"⏳ {_('Iniciando...')}", id="topbar", classes="screen-topbar")
         with Horizontal(id="main-layout"):
             with Vertical(id="tree-panel"):
-                yield Input(placeholder="🔍 Buscar repo...", id="search-input")
+                yield Input(placeholder=f"🔍 {_('Buscar repo...')}", id="search-input")
                 yield RepoTree(id="repo-tree")
             with Vertical(id="detail-panel"):
                 with Horizontal(id="detail-row"):
@@ -82,7 +83,7 @@ class MainScreen(Screen):
         config_error = config_service.consume_last_error()
         if config_error is not None:
             self.notify(
-                config_error.user_message,
+                config_error.localized_message,
                 severity="warning",
                 timeout=8,
             )
@@ -90,10 +91,32 @@ class MainScreen(Screen):
         self.action_reload()
 
     # ------------------------------------------------------------------ #
+    #  Cambio de idioma en caliente
+    # ------------------------------------------------------------------ #
+    def on_screen_resume(self) -> None:
+        """Se ejecuta al volver a esta pantalla (p. ej. al cerrar Ajustes).
+
+        Si el idioma cambió, se recompone para que los textos estáticos del
+        compose (placeholders, títulos…) aparezcan en el idioma nuevo.
+        """
+        if not getattr(self.app, "i18n_dirty", False):
+            return
+        self.app.i18n_dirty = False
+        self.refresh(recompose=True)
+        self.call_after_refresh(self._after_recompose)
+
+    def _after_recompose(self) -> None:
+        # compose() ha recreado los widgets: hay que devolver el estado inicial
+        # sin volver a pedir datos a GitHub.
+        self.query_one("#search-input", Input).display = False
+        self.query_one(RepoTree).focus()
+        self._rebuild_tree()
+
+    # ------------------------------------------------------------------ #
     #  Carga async
     # ------------------------------------------------------------------ #
     def action_reload(self) -> None:
-        self.query_one(StatusBar).set_status("⏳ Cargando repositorios...")
+        self.query_one(StatusBar).set_status(f"⏳ {_('Cargando repositorios...')}")
         self._fetch_repos()
 
     @work(thread=True, exclusive=True, group="reload", exit_on_error=False)
@@ -113,13 +136,13 @@ class MainScreen(Screen):
         except GhOrganizerError as e:
             logger.warning("Error de dominio cargando repos: %s", e)
             if not worker.is_cancelled:
-                self.app.call_from_thread(self._on_reload_error, e.user_message)
+                self.app.call_from_thread(self._on_reload_error, e.localized_message)
             return
         except Exception:
             logger.exception("Error inesperado en worker")
             if not worker.is_cancelled:
                 self.app.call_from_thread(
-                    self._on_reload_error, GhOrganizerError().user_message
+                    self._on_reload_error, GhOrganizerError().localized_message
                 )
             return
 
@@ -131,7 +154,9 @@ class MainScreen(Screen):
         self._cached_user_login = login
         self._cached_repos = repos
         self._rebuild_tree()
-        self.query_one(StatusBar).set_status(f"✅ {len(repos)} repos cargados")
+        self.query_one(StatusBar).set_status(
+            f"✅ {_('%(count)s repos cargados') % {'count': len(repos)}}"
+        )
 
     def _on_reload_error(self, message: str) -> None:
         self.query_one("#topbar", Static).update(message)
@@ -151,9 +176,9 @@ class MainScreen(Screen):
         self.app.sub_title = f"@{self._cached_user_login}"
         topbar.update(
             f"{ICON_GITHUB} [b]@{self._cached_user_login}[/b]   ·   "
-            f"{ICON_REPO} [b]{len(repos)}[/b] repos   ·   "
-            f"{ICON_FOLDER} [b]{len(folder_data)}[/b] colecciones   ·   "
-            f"{ICON_WARNING} [b]{unassigned_count}[/b] sin asignar"
+            f"{ICON_REPO} [b]{len(repos)}[/b] {_('repos')}   ·   "
+            f"{ICON_FOLDER} [b]{len(folder_data)}[/b] {_('colecciones')}   ·   "
+            f"{ICON_WARNING} [b]{unassigned_count}[/b] {_('sin asignar')}"
         )
         self.query_one(RepoTree).rebuild(repos, folder_data)
 
@@ -187,14 +212,14 @@ class MainScreen(Screen):
         """Enter sobre un repo → abrir en navegador (solo si es público)."""
         if event.repo.private:
             self.notify(
-                "🔒 El repositorio es privado. Ábrelo manualmente en GitHub.",
+                _("🔒 El repositorio es privado. Ábrelo manualmente en GitHub."),
                 severity="warning",
                 timeout=4,
             )
             return
 
         webbrowser.open(event.repo.html_url)
-        self.notify(f"🌐 Abriendo {event.repo.name}", timeout=2)
+        self.notify(_("🌐 Abriendo %(name)s") % {"name": event.repo.name}, timeout=2)
 
     # ------------------------------------------------------------------ #
     #  Búsqueda
@@ -224,7 +249,7 @@ class MainScreen(Screen):
         repo = self.query_one(RepoTree).get_selected_repo()
         if repo is None:
             self.notify(
-                "Selecciona un repositorio primero.",
+                _("Selecciona un repositorio primero."),
                 severity="warning",
                 timeout=3,
             )
@@ -234,7 +259,7 @@ class MainScreen(Screen):
         try:
             git_service.ensure_git_available()
         except GitNotInstalledError as e:
-            self.notify(e.user_message, severity="error", timeout=6)
+            self.notify(e.localized_message, severity="error", timeout=6)
             return
 
         clone_dir_str = preferences.get("clone_dir", "~/github")
@@ -242,10 +267,14 @@ class MainScreen(Screen):
         target = clone_dir / repo.name
 
         if target.exists():
-            self.notify(f"📂 Ya existe en {target}", severity="warning", timeout=3)
+            self.notify(
+                _("📂 Ya existe en %(path)s") % {"path": target},
+                severity="warning",
+                timeout=3,
+            )
             return
 
-        self.notify(f"⏳ Clonando {repo.name}...", timeout=3)
+        self.notify(_("⏳ Clonando %(name)s...") % {"name": repo.name}, timeout=3)
         self._clone_worker(repo.html_url, target, repo.name)
 
     @work(thread=True, exclusive=True, group="clone")
@@ -255,21 +284,23 @@ class MainScreen(Screen):
         except GhOrganizerError as e:
             logger.warning("Fallo clonando %s: %s", name, e)
             self.app.call_from_thread(
-                self.notify, e.user_message, severity="error", timeout=6
+                self.notify, e.localized_message, severity="error", timeout=6
             )
             return
         except Exception:
             logger.exception("Error inesperado clonando %s", name)
             self.app.call_from_thread(
                 self.notify,
-                GhOrganizerError().user_message,
+                GhOrganizerError().localized_message,
                 severity="error",
                 timeout=6,
             )
             return
 
         self.app.call_from_thread(
-            self.notify, f"✅ {name} clonado en {cloned_to}", timeout=4
+            self.notify,
+            _("✅ %(name)s clonado en %(path)s") % {"name": name, "path": cloned_to},
+            timeout=4,
         )
 
     # ------------------------------------------------------------------ #
@@ -295,7 +326,7 @@ class MainScreen(Screen):
         repo = self.query_one(RepoTree).get_selected_repo()
         if repo is None:
             self.notify(
-                "Selecciona un repositorio primero.",
+                _("Selecciona un repositorio primero."),
                 severity="warning",
                 timeout=3,
             )
@@ -313,7 +344,7 @@ class MainScreen(Screen):
                 folders.create_folder(folder_path)
                 folders.assign_repo(repo.name, folder_path)
             except GhOrganizerError as e:
-                self.notify(e.user_message, severity="error", timeout=5)
+                self.notify(e.localized_message, severity="error", timeout=5)
                 return
             self.notify(
                 f"{ICON_FOLDER} {repo.name} → {folder_path}",
@@ -331,7 +362,7 @@ class MainScreen(Screen):
         repo = self.query_one(RepoTree).get_selected_repo()
         if repo is None:
             self.notify(
-                "Selecciona un repositorio primero.",
+                _("Selecciona un repositorio primero."),
                 severity="warning",
                 timeout=3,
             )
@@ -340,7 +371,7 @@ class MainScreen(Screen):
         folders = FolderManager()
         if repo.name not in folders.get_assigned_repo_names():
             self.notify(
-                f"{repo.name} no está asignado a ninguna carpeta.",
+                _("%(name)s no está asignado a ninguna carpeta.") % {"name": repo.name},
                 severity="warning",
                 timeout=3,
             )
@@ -349,11 +380,11 @@ class MainScreen(Screen):
         try:
             folders.remove_repo(repo.name)
         except GhOrganizerError as e:
-            self.notify(e.user_message, severity="error", timeout=5)
+            self.notify(e.localized_message, severity="error", timeout=5)
             return
 
         self.notify(
-            f"↩  {repo.name} devuelto a 'Sin asignar'",
+            _("↩  %(name)s devuelto a 'Sin asignar'") % {"name": repo.name},
             severity="information",
             timeout=3,
         )
@@ -375,7 +406,7 @@ class MainScreen(Screen):
 
         if not self._cached_repos:
             self.notify(
-                "Carga los repositorios primero (pulsa r).",
+                _("Carga los repositorios primero (pulsa r)."),
                 severity="warning",
                 timeout=3,
             )
@@ -388,7 +419,7 @@ class MainScreen(Screen):
 
         if unassigned_count == 0:
             self.notify(
-                "No hay repos sin asignar.",
+                _("No hay repos sin asignar."),
                 severity="information",
                 timeout=3,
             )
@@ -403,11 +434,11 @@ class MainScreen(Screen):
                     self._cached_repos, strategy_fn
                 )
             except GhOrganizerError as e:
-                self.notify(e.user_message, severity="error", timeout=6)
+                self.notify(e.localized_message, severity="error", timeout=6)
                 return
             if moved == 0:
                 self.notify(
-                    "No había repos sin asignar para organizar.",
+                    _("No había repos sin asignar para organizar."),
                     severity="information",
                     timeout=3,
                 )
@@ -419,7 +450,8 @@ class MainScreen(Screen):
             self._rebuild_tree()
 
             self.notify(
-                f"📦 {moved} repos organizados en {new_folders} carpetas nuevas",
+                _("📦 %(moved)s repos organizados en %(folders)s carpetas nuevas")
+                % {"moved": moved, "folders": new_folders},
                 severity="information",
                 timeout=4,
             )
@@ -437,9 +469,9 @@ class MainScreen(Screen):
         try:
             save_theme(new)
         except GhOrganizerError as e:
-            self.notify(e.user_message, severity="warning", timeout=5)
+            self.notify(e.localized_message, severity="warning", timeout=5)
             return
-        self.notify(f"🎨 Tema: [b]{new}[/b]", timeout=2)
+        self.notify(_("🎨 Tema: [b]%(theme)s[/b]") % {"theme": new}, timeout=2)
 
     def action_show_help(self) -> None:
         """Abre el modal de ayuda con todos los atajos de teclado."""

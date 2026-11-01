@@ -10,6 +10,7 @@ from textual.widgets import Input, Label, Static, Tree
 from textual.widgets.tree import TreeNode
 
 from gh_organizer.core.exceptions import GhOrganizerError
+from gh_organizer.i18n import _
 from gh_organizer.services import FolderManager
 from gh_organizer.ui import keybindings
 from gh_organizer.ui.icons import ICON_EMPTY, ICON_FOLDER
@@ -59,18 +60,23 @@ class FolderModal(ModalScreen[str | None]):
     def compose(self) -> ComposeResult:
         with Center(), Vertical(classes="modal-box") as box:
             if self.mode == "move":
-                box.border_title = " Mover repositorio "
+                box.border_title = f" {_('Mover repositorio')} "
                 yield Label(
-                    f"📦 Mover [b cyan]{self.repo_name}[/b cyan] a:",
+                    _("📦 Mover [b cyan]%(repo)s[/b cyan] a:")
+                    % {"repo": self.repo_name},
                     classes="modal-title",
                 )
             else:
-                box.border_title = " Gestor de colecciones "
-                yield Label("📁 Gestor de colecciones", classes="modal-title")
+                box.border_title = f" {_('Gestor de colecciones')} "
+                yield Label(
+                    f"📁 {_('Gestor de colecciones')}", classes="modal-title"
+                )
 
-            yield Tree(f"{ICON_FOLDER} Colecciones", id="folder-tree")
+            yield Tree(f"{ICON_FOLDER} {_('Colecciones')}", id="folder-tree")
             yield Static("", id="context-label")
-            yield Input(placeholder="Nombre de la nueva colección", id="folder-input")
+            yield Input(
+                placeholder=_("Nombre de la nueva colección"), id="folder-input"
+            )
             yield Static("", id="hint-label", classes="modal-hint")
 
     def on_mount(self) -> None:
@@ -116,7 +122,9 @@ class FolderModal(ModalScreen[str | None]):
                     nodes[partial] = node
 
         if not folders:
-            tree.root.add_leaf(f"[dim]{ICON_EMPTY} (sin colecciones todavía)[/dim]")
+            tree.root.add_leaf(
+                f"[dim]{ICON_EMPTY} {_('(sin colecciones todavía)')}[/dim]"
+            )
 
         # Aplicar expansión desde el set
         for partial, node in nodes.items():
@@ -165,44 +173,67 @@ class FolderModal(ModalScreen[str | None]):
         input_w = self.query_one("#folder-input", Input)
 
         if self._state == "renaming":
-            parent = "/".join(self._target_path.split("/")[:-1]) or "(raíz)"
-            label.update(f"📍 Padre:  [dim]{parent}[/dim]   ✏️  Renombrando")
-            hint.update("[b]Enter[/b]: confirmar · [b]Esc[/b]: cancelar")
+            parent = "/".join(self._target_path.split("/")[:-1]) or _("(raíz)")
+            label.update(
+                _("📍 Padre:  [dim]%(parent)s[/dim]   ✏️  Renombrando")
+                % {"parent": parent}
+            )
+            hint.update(_("[b]Enter[/b]: confirmar · [b]Esc[/b]: cancelar"))
             return
 
         if self._state == "confirming":
             folders = FolderManager()
             repos, subs = folders.count_descendants(self._target_path)
             label.update(
-                f"⚠️  ¿Eliminar [b]{self._target_path}[/b]? "
-                f"Contiene [b]{repos}[/b] repos y [b]{subs}[/b] subcarpetas."
+                _(
+                    "⚠️  ¿Eliminar [b]%(path)s[/b]? "
+                    "Contiene [b]%(repos)s[/b] repos y [b]%(subs)s[/b] subcarpetas."
+                )
+                % {"path": self._target_path, "repos": repos, "subs": subs}
             )
-            hint.update("[b]y[/b]: eliminar · [b]n[/b]/[b]Esc[/b]: cancelar")
+            hint.update(_("[b]y[/b]: eliminar · [b]n[/b]/[b]Esc[/b]: cancelar"))
             return
 
-        parent = self._selected_path or "(raíz)"
+        parent = self._selected_path or _("(raíz)")
 
         if input_w.has_focus:
-            label.update(f"✏️  Creando dentro de: [b cyan]{parent}[/b cyan]")
+            label.update(
+                _("✏️  Creando dentro de: [b cyan]%(parent)s[/b cyan]")
+                % {"parent": parent}
+            )
             if self.mode == "move":
                 hint.update(
-                    "[b]Enter[/b]: crear y mover aquí · [b]Tab[/b]: volver al árbol"
+                    _(
+                        "[b]Enter[/b]: crear y mover aquí · "
+                        "[b]Tab[/b]: volver al árbol"
+                    )
                 )
             else:
                 hint.update(
-                    "[b]Enter[/b]: crear · [b]Tab[/b]: volver al árbol · [b]Esc[/b]: limpiar"
+                    _(
+                        "[b]Enter[/b]: crear · [b]Tab[/b]: volver al árbol · "
+                        "[b]Esc[/b]: limpiar"
+                    )
                 )
         else:
-            label.update(f"📍 Seleccionada: [b cyan]{parent}[/b cyan]")
+            label.update(
+                _("📍 Seleccionada: [b cyan]%(parent)s[/b cyan]") % {"parent": parent}
+            )
             if self.mode == "move":
                 hint.update(
-                    "[b]Enter[/b]: mover aquí · [b]n[/b]: nueva hija · "
-                    "[b]a[/b]: nueva raíz · [b]r[/b]: rename · [b]d[/b]: del · [b]Esc[/b]: cerrar"
+                    _(
+                        "[b]Enter[/b]: mover aquí · [b]n[/b]: nueva hija · "
+                        "[b]a[/b]: nueva raíz · [b]r[/b]: rename · [b]d[/b]: del · "
+                        "[b]Esc[/b]: cerrar"
+                    )
                 )
             else:
                 hint.update(
-                    "[b]n[/b]: nueva hija · [b]a[/b]: nueva raíz · "
-                    "[b]Tab[/b]: escribir · [b]r[/b]: rename · [b]d[/b]: del · [b]Esc[/b]: cerrar"
+                    _(
+                        "[b]n[/b]: nueva hija · [b]a[/b]: nueva raíz · "
+                        "[b]Tab[/b]: escribir · [b]r[/b]: rename · [b]d[/b]: del · "
+                        "[b]Esc[/b]: cerrar"
+                    )
                 )
 
     # ------------------------------------------------------------------ #
@@ -324,7 +355,9 @@ class FolderModal(ModalScreen[str | None]):
         input_w = self.query_one("#folder-input", Input)
         input_w.value = ""
         input_w.placeholder = (
-            f"Nueva colección dentro de {path}" if path else "Nombre en la raíz"
+            _("Nueva colección dentro de %(path)s") % {"path": path}
+            if path
+            else _("Nombre en la raíz")
         )
         input_w.focus()
         self._update_context()
@@ -335,7 +368,7 @@ class FolderModal(ModalScreen[str | None]):
         tree.select_node(tree.root)
         input_w = self.query_one("#folder-input", Input)
         input_w.value = ""
-        input_w.placeholder = "Nombre de la nueva colección raíz"
+        input_w.placeholder = _("Nombre de la nueva colección raíz")
         input_w.focus()
         self._update_context()
 
@@ -343,7 +376,7 @@ class FolderModal(ModalScreen[str | None]):
         path = self._current_path()
         if not path:
             self.notify(
-                "Selecciona una carpeta (no la raíz).", severity="warning", timeout=2
+                _("Selecciona una carpeta (no la raíz)."), severity="warning", timeout=2
             )
             return
         self._state = "renaming"
@@ -358,7 +391,7 @@ class FolderModal(ModalScreen[str | None]):
         path = self._current_path()
         if not path:
             self.notify(
-                "Selecciona una carpeta (no la raíz).", severity="warning", timeout=2
+                _("Selecciona una carpeta (no la raíz)."), severity="warning", timeout=2
             )
             return
         folders = FolderManager()
@@ -367,7 +400,7 @@ class FolderModal(ModalScreen[str | None]):
             try:
                 folders.delete_folder(path)
             except GhOrganizerError as e:
-                self.notify(e.user_message, severity="error", timeout=5)
+                self.notify(e.localized_message, severity="error", timeout=5)
                 return
             self._expanded_paths = {
                 p
@@ -406,7 +439,7 @@ class FolderModal(ModalScreen[str | None]):
         try:
             folders.create_folder(full_path)
         except GhOrganizerError as e:
-            self.notify(e.user_message, severity="error", timeout=5)
+            self.notify(e.localized_message, severity="error", timeout=5)
             return
 
         parts = full_path.split("/")
@@ -418,7 +451,7 @@ class FolderModal(ModalScreen[str | None]):
 
         input_w = self.query_one("#folder-input", Input)
         input_w.value = ""
-        input_w.placeholder = "Nombre de la nueva colección"
+        input_w.placeholder = _("Nombre de la nueva colección")
         self.query_one("#folder-tree", Tree).focus()
         self._update_context()
 
@@ -433,7 +466,7 @@ class FolderModal(ModalScreen[str | None]):
         try:
             new_path = folders.rename_folder(old_path, new_name)
         except GhOrganizerError as e:
-            self.notify(e.user_message, severity="error", timeout=4)
+            self.notify(e.localized_message, severity="error", timeout=4)
             self._cancel_special_state()
             return
 
@@ -450,7 +483,7 @@ class FolderModal(ModalScreen[str | None]):
         try:
             folders.delete_folder(self._target_path)
         except GhOrganizerError as e:
-            self.notify(e.user_message, severity="error", timeout=5)
+            self.notify(e.localized_message, severity="error", timeout=5)
             self._cancel_special_state()
             return
         self._expanded_paths = {
@@ -467,6 +500,6 @@ class FolderModal(ModalScreen[str | None]):
         self._target_path = ""
         input_w = self.query_one("#folder-input", Input)
         input_w.value = ""
-        input_w.placeholder = "Nombre de la nueva colección"
+        input_w.placeholder = _("Nombre de la nueva colección")
         self.query_one("#folder-tree", Tree).focus()
         self._update_context()

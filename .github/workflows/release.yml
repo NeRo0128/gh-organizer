@@ -19,7 +19,7 @@ jobs:
             artifact_name: gh-organizer-linux
             asset_name: gh-organizer-linux
           - os: windows-latest
-            artifact_name: gh-organizer-windows.exe
+            artifact_name: gh-organizer-windows # 👈 sin .exe
             asset_name: gh-organizer-windows.exe
           - os: macos-latest
             artifact_name: gh-organizer-macos
@@ -55,11 +55,19 @@ jobs:
       - name: Build binary with PyInstaller
         shell: bash
         run: |
+          # 👈 Separador según el SO
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            SEP=";"
+          else
+            SEP=":"
+          fi
+          echo "Using separator: $SEP"
+
           uv add --dev pyinstaller
           uv run pyinstaller --onefile \
             --name "${{ matrix.artifact_name }}" \
-            --add-data "src/gh_organizer/ui/styles:gh_organizer/ui/styles" \
-            --add-data "src/gh_organizer/ui/auth.tcss:gh_organizer/ui" \
+            --add-data "src/gh_organizer/ui/styles${SEP}gh_organizer/ui/styles" \
+            --add-data "src/gh_organizer/locales${SEP}gh_organizer/locales" \
             --collect-all textual \
             --collect-all pygithub \
             --collect-all keyring \
@@ -76,7 +84,7 @@ jobs:
           elif [ -f "dist/${{ matrix.artifact_name }}.exe" ]; then
             cp "dist/${{ matrix.artifact_name }}.exe" "release/${{ matrix.asset_name }}"
           else
-            echo "Error: No se encontró el binario en dist/"
+            echo "❌ No se encontró el binario en dist/"
             ls -la dist/
             exit 1
           fi
