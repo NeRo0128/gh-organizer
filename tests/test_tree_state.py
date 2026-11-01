@@ -1,11 +1,15 @@
 # tests/test_tree_state.py
-"""Tests de persistencia del estado de expansión del árbol."""
+"""Tests de persistencia del estado de expansión del árbol.
 
-import json
+Desde la migración a un único config.toml, tree_state ya no tiene fichero
+propio: escribe la sección ``[tree_state]`` del config.
+"""
+
+import tomllib
 from pathlib import Path
 
-from github_organizer.services import tree_state
-from github_organizer.services.tree_state import (
+from gh_organizer.services import config
+from gh_organizer.services.tree_state import (
     DEFAULT_MODE,
     MODE_COLLAPSED,
     MODE_EXPANDED,
@@ -13,6 +17,11 @@ from github_organizer.services.tree_state import (
     load_expanded_paths,
     save_expanded_paths,
 )
+
+
+def _read_config() -> dict:
+    with config.CONFIG_FILE.open("rb") as f:
+        return tomllib.load(f)
 
 
 def test_load_returns_empty_when_file_missing(tmp_data_dirs: Path) -> None:
@@ -36,26 +45,36 @@ def test_save_overwrites_previous(tmp_data_dirs: Path) -> None:
     assert load_expanded_paths() == {"B"}
 
 
-def test_load_handles_corrupt_json(tmp_data_dirs: Path) -> None:
-    tree_state.TREE_STATE_FILE.write_text("{not valid json", encoding="utf-8")
+def test_load_handles_corrupt_toml(tmp_data_dirs: Path) -> None:
+    config.CONFIG_FILE.write_text("{not valid toml", encoding="utf-8")
     assert load_expanded_paths() == set()
 
 
 def test_load_handles_empty_file(tmp_data_dirs: Path) -> None:
-    tree_state.TREE_STATE_FILE.write_text("", encoding="utf-8")
+    config.CONFIG_FILE.write_text("", encoding="utf-8")
     assert load_expanded_paths() == set()
 
 
 def test_load_handles_missing_key(tmp_data_dirs: Path) -> None:
-    tree_state.TREE_STATE_FILE.write_text('{"otra_cosa": 1}', encoding="utf-8")
+    config.CONFIG_FILE.write_text("[tree_state]\nother = 1\n", encoding="utf-8")
     assert load_expanded_paths() == set()
 
 
-def test_save_writes_sorted_json(tmp_data_dirs: Path) -> None:
+def test_save_writes_sorted_list(tmp_data_dirs: Path) -> None:
     save_expanded_paths({"C", "A", "B"})
-    raw = tree_state.TREE_STATE_FILE.read_text(encoding="utf-8")
-    data = json.loads(raw)
-    assert data == {"expanded_paths": ["A", "B", "C"]}
+    assert _read_config()["tree_state"]["expanded_paths"] == ["A", "B", "C"]
+
+
+def test_save_preserves_other_sections(tmp_data_dirs: Path, sample_repos: list) -> None:
+    """Guardar el árbol NO debe borrar carpetas ni preferencias."""
+    from gh_organizer.services import FolderManager
+
+    FolderManager().assign_repo("alpha", "Personal")
+    save_expanded_paths({"Personal"})
+
+    data = _read_config()
+    assert data["folders"]["Personal"] == ["alpha"]
+    assert "preferences" in data
 
 
 def test_mode_constants_exist() -> None:

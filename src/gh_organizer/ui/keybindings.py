@@ -21,11 +21,16 @@ MAIN: list[BindingType] = [
     Binding("n", "new_folder", "Nueva colección"),
     Binding("o", "organize", "Auto-organizar"),
     Binding("slash", "search", "Buscar"),
+    Binding("question_mark", "show_help", "Ayuda"),
     Binding("ctrl+k", "cycle_theme", "Tema"),
 ]
 
 AUTH: list[BindingType] = [
     Binding("escape", "app.pop_screen", "Cancelar"),
+]
+
+SETTINGS: list[BindingType] = [  # 👈 AÑADIR
+    Binding("escape", "app.pop_screen", "Volver"),
 ]
 
 FOLDER_PICKER: list[BindingType] = [
@@ -38,8 +43,12 @@ FOLDER_PICKER: list[BindingType] = [
 ]
 
 ORGANIZE: list[BindingType] = [
+    Binding("up", "cursor_up", "Subir"),
+    Binding("down", "cursor_down", "Bajar"),
+    Binding("enter", "select", "Aplicar estrategia"),
     Binding("escape", "app.pop_screen", "Cancelar"),
 ]
-SETTINGS: list[BindingType] = [
-    Binding("escape", "app.pop_screen", "Volver"),
+
+HELP: list[BindingType] = [
+    Binding("escape", "app.pop_screen", "Cerrar"),
 ]

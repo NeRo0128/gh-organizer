@@ -3,12 +3,11 @@
 
 import logging
 
-import requests
-from github import GithubException
 from textual import work
 from textual.widgets import Static
 
 from gh_organizer.core import Release, Repo
+from gh_organizer.core.exceptions import GhOrganizerError, MissingTokenError
 from gh_organizer.services import GitHubClient, load_token
 from gh_organizer.utils import format_date
 
@@ -46,29 +45,24 @@ class ReleasesPanel(Static):
     # ---------------------------------------------------------------- #
     @work(thread=True, exclusive=True, group="releases")
     def _load_worker(self, repo_full_name: str) -> None:
-        token = load_token()
-        if not token:
-            self.app.call_from_thread(self._on_error, repo_full_name, "No hay token")
-            return
         try:
+            token = load_token()
+            if not token:
+                raise MissingTokenError()
             client = GitHubClient(token)
-            releases = client.get_releases(repo_full_name, limit=5)
-            client.close()
-        except GithubException as e:
-            logger.warning("Error GitHub cargando releases: %s", e)
-            self.app.call_from_thread(
-                self._on_error, repo_full_name, f"Error GitHub: {e}"
-            )
+            try:
+                releases = client.get_releases(repo_full_name, limit=5)
+            finally:
+                client.close()
+        except GhOrganizerError as e:
+            logger.warning("Error cargando releases de %s: %s", repo_full_name, e)
+            self.app.call_from_thread(self._on_error, repo_full_name, e.user_message)
             return
-        except requests.exceptions.RequestException as e:
-            logger.warning("Error de red cargando releases: %s", e)
-            self.app.call_from_thread(
-                self._on_error, repo_full_name, f"Error de red: {e}"
-            )
-            return
-        except Exception as e:
+        except Exception:
             logger.exception("Error inesperado cargando releases")
-            self.app.call_from_thread(self._on_error, repo_full_name, f"Error: {e}")
+            self.app.call_from_thread(
+                self._on_error, repo_full_name, GhOrganizerError().user_message
+            )
             return
 
         self.app.call_from_thread(self._on_loaded, repo_full_name, releases)

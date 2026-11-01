@@ -5,10 +5,10 @@ from pathlib import Path
 
 import pytest
 
-from github_organizer.core import Repo
-from github_organizer.services import FolderManager
-from github_organizer.services.folder import DEFAULT_FOLDERS
-from github_organizer.services.organizer import by_language
+from gh_organizer.core import Repo
+from gh_organizer.services import FolderManager
+from gh_organizer.services.folder import DEFAULT_FOLDERS
+from gh_organizer.services.organizer import by_language
 
 
 # ---------------------------------------------------------------------- #
@@ -29,9 +29,12 @@ def test_existing_data_is_not_overwritten(tmp_data_dirs: Path) -> None:
     assert fm2.get_repos_in_folder("Personal") == ["alpha"]
 
 
-def test_folders_file_is_created(tmp_data_dirs: Path) -> None:
+def test_config_file_is_created_on_first_run(tmp_data_dirs: Path) -> None:
+    from gh_organizer.services import config
+
     FolderManager()
-    assert (tmp_data_dirs / "folders.json").exists()
+    assert config.CONFIG_FILE.exists()
+    assert "folders" in config.load()
 
 
 # ---------------------------------------------------------------------- #

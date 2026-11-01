@@ -1,43 +1,45 @@
 # tests/conftest.py
 """Fixtures compartidas para toda la suite de tests.
 
-Todas las pruebas que toquen disco redirigen CONFIG_DIR / DATA_DIR / LOG_DIR
-a un directorio temporal (tmp_path). Nunca se toca el directorio real del
-usuario (~/.local/share/github-organizer).
+Todas las pruebas que toquen disco redirigen CONFIG_DIR / DATA_DIR / LOG_DIR y,
+sobre todo, ``services.config.CONFIG_FILE`` a un directorio temporal
+(tmp_path). Nunca se toca la configuración real del usuario
+(~/.config/github-organizer).
 """
 
 from pathlib import Path
 
 import pytest
 
-from github_organizer.core import Repo
-from github_organizer.services import settings, tree_state
+from gh_organizer.core import Repo
+from gh_organizer.services import config, settings
 
 
 @pytest.fixture
 def tmp_data_dirs(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     """Redirige todos los directorios y archivos de persistencia a tmp_path.
 
-    Devuelve el directorio de datos (donde viven folders.json y tree_state.json).
+    Devuelve el directorio de datos. La configuración real (config.toml) queda
+    en ``tmp_path / "config"``.
     """
-    config = tmp_path / "config"
+    config_dir = tmp_path / "config"
     data = tmp_path / "data"
     log = tmp_path / "log"
-    for d in (config, data, log):
+    for d in (config_dir, data, log):
         d.mkdir(parents=True, exist_ok=True)
 
     # settings.py — se consultan en tiempo de llamada, así que basta con
     # sobreescribirlos en el módulo.
-    monkeypatch.setattr(settings, "CONFIG_DIR", config)
+    monkeypatch.setattr(settings, "CONFIG_DIR", config_dir)
     monkeypatch.setattr(settings, "DATA_DIR", data)
     monkeypatch.setattr(settings, "LOG_DIR", log)
     monkeypatch.setattr(settings, "FOLDERS_FILE", data / "folders.json")
     monkeypatch.setattr(settings, "LOG_FILE", log / "app.log")
 
-    # tree_state.py — TREE_STATE_FILE se calcula en import-time, hay que
-    # parchearlo explícitamente.
-    monkeypatch.setattr(tree_state, "DATA_DIR", data)
-    monkeypatch.setattr(tree_state, "TREE_STATE_FILE", data / "tree_state.json")
+    # config.py — CONFIG_FILE se calcula en import-time, hay que parchearlo
+    # explícitamente (si no, los tests escribirían en ~/.config real).
+    monkeypatch.setattr(config, "CONFIG_FILE", config_dir / "config.toml")
+    config.consume_last_error()  # limpia errores de tests anteriores
 
     return data
 

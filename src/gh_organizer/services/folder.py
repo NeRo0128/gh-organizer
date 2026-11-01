@@ -2,6 +2,11 @@
 import logging
 
 from gh_organizer.core import Repo
+from gh_organizer.core.exceptions import (
+    FolderExistsError,
+    FolderNotFoundError,
+    InvalidFolderNameError,
+)
 from gh_organizer.services import config
 from gh_organizer.services.organizer import Strategy
 
@@ -80,7 +85,9 @@ class FolderManager:
     # ------------------------------------------------------------------ #
     def create_folder(self, folder_path: str) -> None:
         logger.debug("create_folder(%r)", folder_path)
-        parts = folder_path.split("/")
+        parts = [p.strip() for p in folder_path.strip().strip("/").split("/")]
+        if not folder_path.strip("/") or any(not p for p in parts):
+            raise InvalidFolderNameError()
         created: list[str] = []
         for i in range(1, len(parts) + 1):
             partial = "/".join(parts[:i])
@@ -96,11 +103,11 @@ class FolderManager:
     def rename_folder(self, old_path: str, new_name: str) -> str:
         logger.debug("rename_folder(%r, %r)", old_path, new_name)
         if old_path not in self._data:
-            raise KeyError(f"No existe la carpeta: {old_path}")
+            raise FolderNotFoundError(old_path)
 
         new_name = new_name.strip().strip("/")
         if not new_name:
-            raise ValueError("El nombre no puede estar vacío")
+            raise InvalidFolderNameError()
 
         parts = old_path.split("/")
         parts[-1] = new_name
@@ -109,7 +116,7 @@ class FolderManager:
         if new_path == old_path:
             return old_path
         if new_path in self._data:
-            raise ValueError(f"Ya existe una colección con esa ruta: {new_path}")
+            raise FolderExistsError(new_path)
 
         new_data: dict[str, list[str]] = {}
         for path, repos in self._data.items():

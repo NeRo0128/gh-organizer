@@ -5,8 +5,8 @@ from datetime import UTC, datetime
 
 import pytest
 
-import github_organizer.utils.dates as dates_module
-from github_organizer.utils.dates import format_date
+import gh_organizer.utils.dates as dates_module
+from gh_organizer.utils.dates import format_date
 
 
 @pytest.fixture

@@ -1,8 +1,8 @@
 # tests/test_organizer.py
 """Tests de las estrategias de auto-organización."""
 
-from github_organizer.core import Repo
-from github_organizer.services.organizer import (
+from gh_organizer.core import Repo
+from gh_organizer.services.organizer import (
     STRATEGIES,
     by_language,
     by_language_and_visibility,

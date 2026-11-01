@@ -6,28 +6,32 @@ import webbrowser
 from pathlib import Path
 from typing import ClassVar
 
-import requests
-from github import GithubException
 from textual import work
 from textual.app import ComposeResult
 from textual.binding import BindingType
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
-from textual.widgets import Footer, Header, Input, Static
+from textual.widgets import Header, Input, Static
 from textual.worker import get_current_worker
 
 from gh_organizer.core import Repo
+from gh_organizer.core.exceptions import (
+    GhOrganizerError,
+    GitNotInstalledError,
+    MissingTokenError,
+)
 from gh_organizer.services import (
     FolderManager,
     GitHubClient,
     load_token,
     preferences,
 )
+from gh_organizer.services import config as config_service
+from gh_organizer.services import git as git_service
 from gh_organizer.ui import (
     ICON_FOLDER,
     ICON_GITHUB,
     ICON_REPO,
-    ICON_SEARCH,
     ICON_WARNING,
     keybindings,
 )
@@ -39,6 +43,7 @@ from gh_organizer.ui.widgets import (
     RepoDetail,
     RepoHighlighted,
     RepoTree,
+    StatusBar,
 )
 
 logger = logging.getLogger(__name__)
@@ -60,21 +65,27 @@ class MainScreen(Screen):
         yield Static("⏳ Iniciando...", id="topbar", classes="screen-topbar")
         with Horizontal(id="main-layout"):
             with Vertical(id="tree-panel"):
-                yield Input(
-                    placeholder=f"{ICON_SEARCH} Buscar repo...", id="search-input"
-                )
+                yield Input(placeholder="🔍 Buscar repo...", id="search-input")
                 yield RepoTree(id="repo-tree")
             with Vertical(id="detail-panel"):
                 with Horizontal(id="detail-row"):
                     yield RepoDetail(id="detail-content")
                     yield ReleasesPanel(id="releases-panel")
                 yield CommitsPanel(id="commits-panel")
-        yield Footer()
+        yield StatusBar(id="statusbar")
 
     def on_mount(self) -> None:
         logger.info("MainScreen montada")
         # Ocultar el input de búsqueda por defecto
         self.query_one("#search-input", Input).display = False
+        # Si el config.toml estaba corrupto en el arranque, avisar una sola vez.
+        config_error = config_service.consume_last_error()
+        if config_error is not None:
+            self.notify(
+                config_error.user_message,
+                severity="warning",
+                timeout=8,
+            )
         self.query_one(RepoTree).focus()
         self.action_reload()
 
@@ -82,38 +93,34 @@ class MainScreen(Screen):
     #  Carga async
     # ------------------------------------------------------------------ #
     def action_reload(self) -> None:
-        self.query_one("#topbar", Static).update("⏳ Cargando repositorios...")
+        self.query_one(StatusBar).set_status("⏳ Cargando repositorios...")
         self._fetch_repos()
 
     @work(thread=True, exclusive=True, group="reload", exit_on_error=False)
     def _fetch_repos(self) -> None:
         worker = get_current_worker()
-        token = load_token()
-        if not token:
-            self.app.call_from_thread(
-                self._on_reload_error,
-                "❌ No hay token. Pulsa [b]t[/b] para configurarlo.",
-            )
-            return
         try:
+            token = load_token()
+            if not token:
+                raise MissingTokenError()
+
             client = GitHubClient(token)
-            user = client.get_authenticated_user()
-            repos = client.list_repos()
-            client.close()
-        except GithubException as e:
-            logger.warning("Error de GitHub en worker: %s", e)
+            try:
+                user = client.get_authenticated_user()
+                repos = client.list_repos()
+            finally:
+                client.close()
+        except GhOrganizerError as e:
+            logger.warning("Error de dominio cargando repos: %s", e)
             if not worker.is_cancelled:
-                self.app.call_from_thread(self._on_reload_error, f"❌ GitHub: {e}")
+                self.app.call_from_thread(self._on_reload_error, e.user_message)
             return
-        except requests.exceptions.RequestException as e:
-            logger.warning("Error de red en worker: %s", e)
-            if not worker.is_cancelled:
-                self.app.call_from_thread(self._on_reload_error, f"🌐 Red: {e}")
-            return
-        except Exception as e:
+        except Exception:
             logger.exception("Error inesperado en worker")
             if not worker.is_cancelled:
-                self.app.call_from_thread(self._on_reload_error, f"❌ {e}")
+                self.app.call_from_thread(
+                    self._on_reload_error, GhOrganizerError().user_message
+                )
             return
 
         if worker.is_cancelled:
@@ -121,10 +128,10 @@ class MainScreen(Screen):
         self.app.call_from_thread(self._on_reload_success, user.login, repos)
 
     def _on_reload_success(self, login: str, repos: list[Repo]) -> None:
-        logger.info("Worker OK: %d repos para @%s", len(repos), login)
         self._cached_user_login = login
         self._cached_repos = repos
         self._rebuild_tree()
+        self.query_one(StatusBar).set_status(f"✅ {len(repos)} repos cargados")
 
     def _on_reload_error(self, message: str) -> None:
         self.query_one("#topbar", Static).update(message)
@@ -223,6 +230,13 @@ class MainScreen(Screen):
             )
             return
 
+        # Feedback inmediato: no lanzamos un worker que va a fallar seguro.
+        try:
+            git_service.ensure_git_available()
+        except GitNotInstalledError as e:
+            self.notify(e.user_message, severity="error", timeout=6)
+            return
+
         clone_dir_str = preferences.get("clone_dir", "~/github")
         clone_dir = Path(clone_dir_str).expanduser()
         target = clone_dir / repo.name
@@ -236,15 +250,27 @@ class MainScreen(Screen):
 
     @work(thread=True, exclusive=True, group="clone")
     def _clone_worker(self, url: str, target: Path, name: str) -> None:
-        from gh_organizer.services import git
-
-        ok, msg = git.clone_repo(url, target)
-        if ok:
-            self.app.call_from_thread(self.notify, f"✅ {name}: {msg}", timeout=4)
-        else:
+        try:
+            cloned_to = git_service.clone_repo(url, target)
+        except GhOrganizerError as e:
+            logger.warning("Fallo clonando %s: %s", name, e)
             self.app.call_from_thread(
-                self.notify, f"❌ {name}: {msg}", severity="error", timeout=5
+                self.notify, e.user_message, severity="error", timeout=6
             )
+            return
+        except Exception:
+            logger.exception("Error inesperado clonando %s", name)
+            self.app.call_from_thread(
+                self.notify,
+                GhOrganizerError().user_message,
+                severity="error",
+                timeout=6,
+            )
+            return
+
+        self.app.call_from_thread(
+            self.notify, f"✅ {name} clonado en {cloned_to}", timeout=4
+        )
 
     # ------------------------------------------------------------------ #
     #  Acciones de carpetas
@@ -282,9 +308,13 @@ class MainScreen(Screen):
         def handle_result(folder_path: str | None) -> None:
             if folder_path is None:
                 return
-            folders = FolderManager()
-            folders.create_folder(folder_path)
-            folders.assign_repo(repo.name, folder_path)
+            try:
+                folders = FolderManager()
+                folders.create_folder(folder_path)
+                folders.assign_repo(repo.name, folder_path)
+            except GhOrganizerError as e:
+                self.notify(e.user_message, severity="error", timeout=5)
+                return
             self.notify(
                 f"{ICON_FOLDER} {repo.name} → {folder_path}",
                 severity="information",
@@ -316,7 +346,12 @@ class MainScreen(Screen):
             )
             return
 
-        folders.remove_repo(repo.name)
+        try:
+            folders.remove_repo(repo.name)
+        except GhOrganizerError as e:
+            self.notify(e.user_message, severity="error", timeout=5)
+            return
+
         self.notify(
             f"↩  {repo.name} devuelto a 'Sin asignar'",
             severity="information",
@@ -363,7 +398,13 @@ class MainScreen(Screen):
             if index is None:
                 return
             _name, strategy_fn, _desc = STRATEGIES[index]
-            moved, new_folders = folders.apply_strategy(self._cached_repos, strategy_fn)
+            try:
+                moved, new_folders = folders.apply_strategy(
+                    self._cached_repos, strategy_fn
+                )
+            except GhOrganizerError as e:
+                self.notify(e.user_message, severity="error", timeout=6)
+                return
             if moved == 0:
                 self.notify(
                     "No había repos sin asignar para organizar.",
@@ -393,5 +434,16 @@ class MainScreen(Screen):
 
         new = next_theme(self.app.theme)
         self.app.theme = new
-        save_theme(new)
+        try:
+            save_theme(new)
+        except GhOrganizerError as e:
+            self.notify(e.user_message, severity="warning", timeout=5)
+            return
         self.notify(f"🎨 Tema: [b]{new}[/b]", timeout=2)
+
+    def action_show_help(self) -> None:
+        """Abre el modal de ayuda con todos los atajos de teclado."""
+        from gh_organizer.ui.modals import HelpModal
+
+        logger.debug("Abriendo HelpModal")
+        self.app.push_screen(HelpModal())

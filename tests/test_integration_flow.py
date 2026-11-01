@@ -3,9 +3,9 @@
 
 from pathlib import Path
 
-from github_organizer.core import Repo
-from github_organizer.services import FolderManager
-from github_organizer.services.organizer import by_language_and_visibility
+from gh_organizer.core import Repo
+from gh_organizer.services import FolderManager
+from gh_organizer.services.organizer import by_language_and_visibility
 
 
 def test_full_flow_organize_and_persist(
