@@ -1,7 +1,33 @@
 # src/gh_organizer/ui/keybindings.py
 """Atajos de teclado centralizados."""
 
-from textual.binding import Binding, BindingType
+from textual.binding import Binding as _TextualBinding
+from textual.binding import BindingType
+
+from gh_organizer.i18n import _
+
+
+class Binding(_TextualBinding):
+    """``Binding`` cuya descripción se traduce al pintarla.
+
+    Las listas de esta constante se evalúan al importar el módulo, es decir,
+    antes de que exista un idioma activo. Guardamos el msgid (español) y
+    traducimos en el *getter*, así el ``Footer`` y el ``HelpModal`` siempre
+    muestran el idioma actual sin reconstruir las listas.
+    """
+
+    def __init__(self, key: str, action: str, description: str = "", **kwargs) -> None:
+        self._msgid = description
+        super().__init__(key, action, description, **kwargs)
+
+    @property
+    def description(self) -> str:
+        return _(self._msgid)
+
+    @description.setter
+    def description(self, value: str) -> None:
+        self._msgid = value
+
 
 GLOBAL: list[BindingType] = [
     Binding("q", "quit", "Salir"),

@@ -8,6 +8,7 @@ from textual.widgets import Tree
 from textual.widgets.tree import TreeNode
 
 from gh_organizer.core import Repo
+from gh_organizer.i18n import _
 from gh_organizer.services import FolderManager
 from gh_organizer.services.preferences import get as pref_get
 from gh_organizer.services.tree_state import (
@@ -49,9 +50,9 @@ class RepoTree(Tree):
     """Árbol con `Sin asignar` + `Colecciones`, navegación left/right y persistencia."""
 
     def __init__(self, **kwargs) -> None:
-        super().__init__("Repositorios", **kwargs)
+        super().__init__(_("Repositorios"), **kwargs)
         self.show_root = False
-        self.border_title = " Repositorios "
+        self.border_title = f" {_('Repositorios')} "
         self._expanded_paths: set[str] = self._load_initial_paths()
         # 👈 Fuente de verdad: datos sin filtrar
         self._all_repos: list[Repo] = []
@@ -119,7 +120,9 @@ class RepoTree(Tree):
 
         if not filtered_repos:
             self.clear()
-            self.root.add_leaf("[dim italic]Sin resultados[/dim italic]")
+            self.root.add_leaf(
+                f"[dim italic]{_('Sin resultados')}[/dim italic]"
+            )
             return
 
         # 2. Filtrar carpetas: solo las que tengan algún repo filtrado
@@ -155,7 +158,7 @@ class RepoTree(Tree):
 
         if unassigned:
             node = self.root.add(
-                f"{ICON_UNASSIGNED} Sin asignar [dim]({len(unassigned)})[/dim]",
+                f"{ICON_UNASSIGNED} {_('Sin asignar')} [dim]({len(unassigned)})[/dim]",
                 expand=True,
             )
             for repo in sorted(unassigned, key=lambda r: r.name.lower()):
@@ -163,12 +166,12 @@ class RepoTree(Tree):
 
         if folder_data:
             root = self.root.add(
-                f"{ICON_FOLDER} Colecciones [dim]({len(folder_data)})[/dim]",
+                f"{ICON_FOLDER} {_('Colecciones')} [dim]({len(folder_data)})[/dim]",
                 expand=True,
             )
             self._build_folder_tree(root, folder_data, repos_by_name)
 
-        self.border_title = f" Repositorios · {len(repos)} "
+        self.border_title = f" {_('Repositorios')} · {len(repos)} "
         logger.debug(
             "Render: %d repos, %d carpetas, %d expandidas",
             len(repos),
@@ -200,14 +203,18 @@ class RepoTree(Tree):
             folder_node = nodes[tuple(parts)]
             repos_in = folder_data[path]
             if not repos_in:
-                folder_node.add_leaf(f"[dim italic]{ICON_EMPTY} (vacía)[/dim italic]")
+                folder_node.add_leaf(
+                    f"[dim italic]{ICON_EMPTY} {_('(vacía)')}[/dim italic]"
+                )
                 continue
             for repo_name in repos_in:
                 repo = repos_by_name.get(repo_name)
                 if repo:
                     folder_node.add_leaf(self._repo_label(repo), data=repo)
                 else:
-                    folder_node.add_leaf(f"[dim]? {repo_name} (no encontrado)[/dim]")
+                    folder_node.add_leaf(
+                        f"[dim]? {repo_name} {_('(no encontrado)')}[/dim]"
+                    )
 
     @staticmethod
     def _repo_label(repo: Repo) -> str:

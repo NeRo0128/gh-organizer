@@ -8,6 +8,7 @@ from textual.widgets import Static
 
 from gh_organizer.core import Release, Repo
 from gh_organizer.core.exceptions import GhOrganizerError, MissingTokenError
+from gh_organizer.i18n import _
 from gh_organizer.services import GitHubClient, load_token
 from gh_organizer.utils import format_date
 
@@ -29,7 +30,7 @@ class ReleasesPanel(Static):
     def show_empty(self) -> None:
         self._current_repo_full_name = ""
         self.update(
-            "[dim italic]Selecciona un repositorio para ver sus releases.[/dim italic]"
+            f"[dim italic]{_('Selecciona un repositorio para ver sus releases.')}[/dim italic]"
         )
 
     def show_for(self, repo: Repo) -> None:
@@ -37,7 +38,7 @@ class ReleasesPanel(Static):
         if self._current_repo_full_name == repo.full_name:
             return
         self._current_repo_full_name = repo.full_name
-        self.update("[dim italic]⏳ Cargando releases...[/dim italic]")
+        self.update(f"[dim italic]⏳ {_('Cargando releases...')}[/dim italic]")
         self._load_worker(repo.full_name)
 
     # ---------------------------------------------------------------- #
@@ -56,12 +57,12 @@ class ReleasesPanel(Static):
                 client.close()
         except GhOrganizerError as e:
             logger.warning("Error cargando releases de %s: %s", repo_full_name, e)
-            self.app.call_from_thread(self._on_error, repo_full_name, e.user_message)
+            self.app.call_from_thread(self._on_error, repo_full_name, e.localized_message)
             return
         except Exception:
             logger.exception("Error inesperado cargando releases")
             self.app.call_from_thread(
-                self._on_error, repo_full_name, GhOrganizerError().user_message
+                self._on_error, repo_full_name, GhOrganizerError().localized_message
             )
             return
 
@@ -83,7 +84,7 @@ class ReleasesPanel(Static):
     def _render_releases(self, releases: list[Release]) -> None:
         if not releases:
             self.update(
-                "[dim italic]Este repositorio no tiene releases publicadas.[/dim italic]"
+                f"[dim italic]{_('Este repositorio no tiene releases publicadas.')}[/dim italic]"
             )
             return
 

@@ -24,7 +24,9 @@ from textual.screen import Screen
 from textual.widgets import Footer, Header, Static
 
 from gh_organizer.core.exceptions import GhOrganizerError
+from gh_organizer.i18n import _, setup_i18n
 from gh_organizer.services import load_token, preferences
+from gh_organizer.services.preferences import LANGUAGE_NAMES, VALID_LANGUAGES
 from gh_organizer.services.token_info import (
     TOKEN_PERMISSIONS,
     build_token_creation_url,
@@ -65,6 +67,14 @@ class SettingRow:
 
 SETTINGS_CATALOG: dict[str, list[SettingRow]] = {
     "appearance": [
+        SettingRow(
+            "language",
+            "Idioma",
+            "select",
+            # Los nombres viajan como msgid al catálogo: se traducen al pintar.
+            choices=[LANGUAGE_NAMES[code] for code in VALID_LANGUAGES],
+            values=list(VALID_LANGUAGES),
+        ),
         SettingRow(
             "theme",
             "Tema",
@@ -181,12 +191,12 @@ class SettingsScreen(Screen):
         with Horizontal(id="settings-tabs"):
             for i, sid in enumerate(self.SECTIONS):
                 yield Static(
-                    f"{SECTION_ICONS[sid]}  {SECTION_TITLES[sid]}",
+                    f"{SECTION_ICONS[sid]}  {_(SECTION_TITLES[sid])}",
                     id=f"tab-{i}",
                     classes="tab-item",
                 )
         with VerticalScroll(id="settings-content") as content:
-            content.border_title = " Configuración "
+            content.border_title = f" {_('Configuración')} "
             yield Vertical(id="section-options")
         yield Footer()
 
@@ -209,8 +219,9 @@ class SettingsScreen(Screen):
         return self.SECTIONS[self._active_section]
 
     def _update_tabs(self) -> None:
-        for i, _sid in enumerate(self.SECTIONS):
+        for i, sid in enumerate(self.SECTIONS):
             tab = self.query_one(f"#tab-{i}", Static)
+            tab.update(f"{SECTION_ICONS[sid]}  {_(SECTION_TITLES[sid])}")
             tab.set_class(i == self._active_section, "-active")
 
     def _render_section(self) -> None:
@@ -218,7 +229,7 @@ class SettingsScreen(Screen):
 
         # Actualizar el título del panel derecho (border-title)
         content = self.query_one("#settings-content")
-        content.border_title = f" {SECTION_TITLES[sid]} "
+        content.border_title = f" {_(SECTION_TITLES[sid])} "
 
         container = self.query_one("#section-options", Vertical)
         container.remove_children()
@@ -252,8 +263,8 @@ class SettingsScreen(Screen):
         }
         theme_display = theme_names.get(self._prefs.get("theme", "github"), "—")
         topbar.update(
-            f"{ICON_SLIDERS}  [b]Configuración[/b]   ·   "
-            f"{ICON_PALETTE} Tema: [b]{theme_display}[/b]"
+            f"{ICON_SLIDERS}  [b]{_('Configuración')}[/b]   ·   "
+            f"{ICON_PALETTE} {_('Tema')}: [b]{theme_display}[/b]"
         )
 
     # ---------------------------------------------------------------- #
@@ -287,14 +298,14 @@ class SettingsScreen(Screen):
                     if row.values and row.value in row.values
                     else 0
                 )
-                display = row.choices[idx] if row.choices else str(row.value)
+                display = _(row.choices[idx]) if row.choices else str(row.value)
                 return (
-                    f"[dim yellow]{row.label:<26}  ‹ {display} ›{marker}[/dim yellow]"
+                    f"[dim yellow]{_(row.label):<26}  ‹ {display} ›{marker}[/dim yellow]"
                 )
             if row.kind == "switch":
                 state = "✓" if row.value else " "
-                return f"[dim yellow]{row.label:<26}  [ {state} ]{marker}[/dim yellow]"
-            return f"[dim yellow]{row.label}{marker}[/dim yellow]"
+                return f"[dim yellow]{_(row.label):<26}  [ {state} ]{marker}[/dim yellow]"
+            return f"[dim yellow]{_(row.label)}{marker}[/dim yellow]"
 
         # Implementado → colores normales
         if row.kind == "select":
@@ -303,16 +314,16 @@ class SettingsScreen(Screen):
                 if row.values and row.value in row.values
                 else 0
             )
-            display = row.choices[idx] if row.choices else str(row.value)
+            display = _(row.choices[idx]) if row.choices else str(row.value)
             return (
-                f"[b]{row.label:<26}[/b]  [dim]‹[/dim] "
+                f"[b]{_(row.label):<26}[/b]  [dim]‹[/dim] "
                 f"[cyan]{display}[/cyan] [dim]›[/dim]"
             )
         if row.kind == "switch":
             box = "[green]✓[/green]" if row.value else "[dim] [/dim]"
-            return f"[b]{row.label:<26}[/b]  [ {box} ]"
+            return f"[b]{_(row.label):<26}[/b]  [ {box} ]"
         value_str = str(row.value) if row.as_markup else f"[dim]{row.value}[/dim]"
-        return f"[b]{row.label:<26}[/b]  {value_str}"
+        return f"[b]{_(row.label):<26}[/b]  {value_str}"
 
     # ---------------------------------------------------------------- #
     #  Sección Cuenta
@@ -326,7 +337,9 @@ class SettingsScreen(Screen):
                     "_token_info",
                     "Token actual",
                     "info",
-                    value=mask_token(token) if token else "[red]no configurado[/red]",
+                    value=mask_token(token)
+                    if token
+                    else f"[red]{_('no configurado')}[/red]",
                     as_markup=True,
                 )
             )
@@ -356,14 +369,14 @@ class SettingsScreen(Screen):
                 icon, color = "⚪", "dim"
             suffix = ""
             if perm.priority == "future" and not has:
-                suffix = " [dim](bloqueará funciones futuras)[/dim]"
+                suffix = f" [dim]{_('(bloqueará funciones futuras)')}[/dim]"
             parent.mount(
                 self._build_row(
                     SettingRow(
                         f"_perm_{perm.scope}",
                         f"  {icon}  {perm.scope}",
                         "info",
-                        value=f"[{color}]{perm.label}[/{color}]{suffix}",
+                        value=f"[{color}]{_(perm.label)}[/{color}]{suffix}",
                         as_markup=True,
                     )
                 )
@@ -375,7 +388,7 @@ class SettingsScreen(Screen):
                     "_create_token",
                     "→ Crear nuevo token",
                     "action",
-                    value="[dim]Enter para abrir GitHub en el navegador[/dim]",
+                    value=f"[dim]{_('Enter para abrir GitHub en el navegador')}[/dim]",
                     as_markup=True,
                 )
             )
@@ -386,7 +399,7 @@ class SettingsScreen(Screen):
                     "_logout",
                     "→ Cerrar sesión",
                     "action",
-                    value="[dim]Enter para eliminar el token guardado[/dim]",
+                    value=f"[dim]{_('Enter para eliminar el token guardado')}[/dim]",
                     as_markup=True,
                 )
             )
@@ -486,14 +499,33 @@ class SettingsScreen(Screen):
         except GhOrganizerError as e:
             # Revertimos en memoria: lo que se ve debe coincidir con el disco.
             self._prefs[key] = previous
-            self.notify(e.user_message, severity="error", timeout=6)
+            self.notify(e.localized_message, severity="error", timeout=6)
             self._render_section()
             return
         if key == "theme":
             self.app.theme = value
             self._update_topbar()  # ← refrescar la línea de contexto
+        elif key == "language":
+            self._apply_language(value)
         if preferences.is_pending(key):
             logger.info("Ajuste '%s' guardado (pendiente de implementar)", key)
+
+    def _apply_language(self, value: str) -> None:
+        """Cambia el idioma en caliente: esta pantalla y la de atrás."""
+        resolved = setup_i18n(value)
+        # Marca para que MainScreen se recomponga al volver a ella.
+        self.app.i18n_dirty = True
+        self._update_tabs()
+        self._update_topbar()
+        self._render_section()
+        # El Footer también muestra descripciones traducidas.
+        self.query_one(Footer).refresh()
+        logger.info("Idioma cambiado a %s", resolved)
+        self.notify(
+            _("🌐 Idioma aplicado: %(lang)s") % {"lang": resolved},
+            severity="information",
+            timeout=2,
+        )
 
     # ---------------------------------------------------------------- #
     #  Enter
@@ -511,7 +543,7 @@ class SettingsScreen(Screen):
             logger.info("Abriendo navegador: %s", url)
             webbrowser.open(url)
             self.notify(
-                "🌐 Abriendo GitHub en el navegador…",
+                _("🌐 Abriendo GitHub en el navegador…"),
                 severity="information",
                 timeout=3,
             )
@@ -520,10 +552,10 @@ class SettingsScreen(Screen):
 
     def _logout(self) -> None:
         if not self._account_token:
-            self.notify("No hay token guardado.", severity="warning", timeout=2)
+            self.notify(_("No hay token guardado."), severity="warning", timeout=2)
             return
         delete_token()
         self._account_token = ""
         self._account_scopes = set()
         self._render_section()
-        self.notify("🔒 Token eliminado.", severity="information", timeout=3)
+        self.notify(_("🔒 Token eliminado."), severity="information", timeout=3)

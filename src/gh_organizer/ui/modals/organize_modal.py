@@ -8,6 +8,7 @@ from textual.containers import Center, Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Label, ListItem, ListView, Static
 
+from gh_organizer.i18n import _
 from gh_organizer.services.organizer import STRATEGIES
 from gh_organizer.ui import keybindings
 from gh_organizer.ui.styles import MODALS_CSS
@@ -39,24 +40,33 @@ class OrganizeModal(ModalScreen[int | None]):
     def compose(self) -> ComposeResult:
         # 👈 Usamos classes="modal-box" y classes="modal-title" para los estilos globales
         with Center(), Vertical(classes="modal-box") as box:
-            box.border_title = " Auto-organizar "
+            box.border_title = f" {_('Auto-organizar')} "
 
-            yield Label("📦 Auto-organizar repositorios", classes="modal-title")
-            yield Label("Elige cómo agrupar los repos sin asignar:")
+            yield Label(
+                f"📦 {_('Auto-organizar repositorios')}", classes="modal-title"
+            )
+            yield Label(_("Elige cómo agrupar los repos sin asignar:"))
 
             items = []
             for name, _fn, desc in STRATEGIES:
-                items.append(ListItem(Label(f"[b]{name}[/b]\n[dim]{desc}[/dim]")))
+                items.append(
+                    ListItem(Label(f"[b]{_(name)}[/b]\n[dim]{_(desc)}[/dim]"))
+                )
             yield ListView(*items, id="strategy-list")
 
             yield Static(
-                f"[dim]Repos que se verán afectados: [/dim][b]{self._unassigned_count}[/b]\n"
-                f"[dim]Repos ya asignados (no se tocan): [/dim][b]{self._assigned_count}[/b]",
+                f"[dim]{_('Repos que se verán afectados:')} [/dim]"
+                f"[b]{self._unassigned_count}[/b]\n"
+                f"[dim]{_('Repos ya asignados (no se tocan):')} [/dim]"
+                f"[b]{self._assigned_count}[/b]",
             )
 
             # 👈 Usamos classes="modal-hint" para el texto de ayuda
             yield Static(
-                "[b]↑/↓[/b]: elegir · [b]Enter[/b]: aplicar · [b]Esc[/b]: cancelar",
+                _(
+                    "[b]↑/↓[/b]: elegir · [b]Enter[/b]: aplicar · "
+                    "[b]Esc[/b]: cancelar"
+                ),
                 classes="modal-hint",
             )
 
