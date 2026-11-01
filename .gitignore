@@ -26,3 +26,16 @@ Thumbs.db
 .coverage
 htmlcov/
 .pytest_cache/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# AUR metadata
+.SRCINFO
+aur-pkg/
+
+# AppImage lockfiles (locales)
+pylock.toml
+pylock.build.toml

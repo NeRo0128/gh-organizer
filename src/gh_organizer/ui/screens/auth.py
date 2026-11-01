@@ -1,15 +1,18 @@
-# src/gh_organizer/screens/token_screen.py
+# src/gh_organizer/ui/screens/auth.py
+"""Pantalla para introducir el Personal Access Token de GitHub."""
+
+import os
 from typing import ClassVar
 
-import requests
-from github import GithubException
 from textual.app import ComposeResult
 from textual.binding import BindingType
 from textual.containers import Center, Vertical
 from textual.screen import Screen
 from textual.widgets import Button, Footer, Header, Input, Static
 
+from gh_organizer.core.exceptions import GhOrganizerError, KeyringUnavailableError
 from gh_organizer.services import GitHubClient, load_token, save_token
+from gh_organizer.services.settings import TOKEN_ENV_VAR
 from gh_organizer.ui import keybindings
 from gh_organizer.ui.styles import AUTH_CSS
 
@@ -57,30 +60,32 @@ class TokenScreen(Screen):
             )
             return
 
-        # --- Validar el token contra GitHub antes de guardarlo ---
+        # --- Validar el token (y sus permisos) antes de guardarlo ---
         status.update("⏳ Validando token con GitHub...")
         client = GitHubClient(token)
         try:
             user = client.get_authenticated_user()
-        except GithubException as e:
-            msg = e.data.get("message", str(e)) if isinstance(e.data, dict) else str(e)
-            status.update(f"❌ Token inválido o sin permisos: {msg}")
-            return
-        except requests.exceptions.RequestException as e:
-            status.update(f"🌐 Error de red: no se pudo contactar a GitHub ({e})")
+            # Petición mínima extra: un token válido pero sin scope `repo`
+            # autentica bien y falla aquí con MissingScopeError.
+            client.verify_repo_scope()
+        except GhOrganizerError as e:
+            status.update(e.user_message)
             return
         finally:
-            client.close()  # 👈 un solo cierre, siempre se ejecuta
+            client.close()  # un solo cierre, siempre se ejecuta
 
-        # --- Si llegamos aquí, el token es válido. Lo guardamos. ---
-        if save_token(token):
-            status.update(
-                f"✅ Conectado como @{user.login} — token guardado en el keyring."
-            )
+        try:
+            save_token(token)
+        except KeyringUnavailableError as e:
+            message = f"⚠️ Conectado como @{user.login}. {e.user_message}"
         else:
-            status.update(
-                f"⚠️ Conectado como @{user.login}, pero no se pudo guardar en el "
-                "keyring. Se usará solo para esta sesión."
+            message = f"✅ Conectado como @{user.login} — token guardado en el keyring."
+
+        if os.environ.get(TOKEN_ENV_VAR):
+            message += (
+                f"\n[dim]⚠️ {TOKEN_ENV_VAR} está definido y tiene prioridad sobre "
+                "el token guardado.[/dim]"
             )
 
-        self.set_timer(1.8, self.app.pop_screen)
+        status.update(message)
+        self.set_timer(2.5, self.app.pop_screen)

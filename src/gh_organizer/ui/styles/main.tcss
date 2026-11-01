@@ -101,3 +101,19 @@ CommitsPanel {
     padding: 0 2;
     background: $surface;
 }
+#statusbar {
+    dock: bottom;
+    height: 1;
+    background: $boost;
+    color: $text;
+    padding: 0 1;
+}
+
+#status-left {
+    width: auto;
+}
+
+#status-right {
+    width: 1fr;
+    text-align: right;
+}

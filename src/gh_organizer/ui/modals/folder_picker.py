@@ -9,6 +9,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Input, Label, Static, Tree
 from textual.widgets.tree import TreeNode
 
+from gh_organizer.core.exceptions import GhOrganizerError
 from gh_organizer.services import FolderManager
 from gh_organizer.ui import keybindings
 from gh_organizer.ui.icons import ICON_EMPTY, ICON_FOLDER
@@ -18,26 +19,34 @@ logger = logging.getLogger(__name__)
 
 
 class FolderModal(ModalScreen[str | None]):
-    """Gestor de colecciones: crear, mover, renombrar y eliminar.
-
-    Flujo de teclado:
-      ↑/↓        navegar árbol
-      ←/→        colapsar / expandir (solo con foco en árbol)
-      Tab        alternar foco entre árbol e input
-      n          crear hija de la carpeta seleccionada
-      a          crear colección en la raíz
-      r          renombrar carpeta seleccionada
-      d          eliminar carpeta seleccionada
-      Enter      (input) crear · (árbol, modo mover) mover repo aquí
-      Esc        cerrar / cancelar rename / cancelar confirmación
-    """
+    """Gestor de colecciones: crear, mover, renombrar y eliminar."""
 
     BINDINGS: ClassVar[list[BindingType]] = keybindings.FOLDER_PICKER
-
     CSS_PATH = MODALS_CSS
 
+    # Solo estilos específicos. El ancho y borde vienen de .modal-box
+    CSS = """
+    #folder-tree {
+        height: auto;
+        min-height: 8;
+        max-height: 14;
+        border: round $primary;
+        margin: 1 0;
+    }
+
+    #context-label {
+        margin-top: 1;
+        height: auto;
+        color: $text;
+    }
+
+    #folder-input:focus {
+        border: tall $accent;
+        background: $boost;
+    }
+    """
+
     def __init__(self, repo_name: str | None = None, mode: str = "move") -> None:
-        """mode: 'move' (asignar repo) o 'create' (crear/editar colecciones)."""
         super().__init__()
         self.repo_name = repo_name
         self.mode = mode
@@ -46,30 +55,23 @@ class FolderModal(ModalScreen[str | None]):
         self._expanded_paths: set[str] = set()
         self._selected_path: str = ""
         self._suppress_events: bool = False
-        logger.debug("FolderModal instanciada (mode=%s, repo=%s)", mode, repo_name)
 
-    # ------------------------------------------------------------------ #
-    #  Composición
-    # ------------------------------------------------------------------ #
     def compose(self) -> ComposeResult:
-        with Center(), Vertical(id="modal-box") as box:
+        with Center(), Vertical(classes="modal-box") as box:
             if self.mode == "move":
                 box.border_title = " Mover repositorio "
                 yield Label(
                     f"📦 Mover [b cyan]{self.repo_name}[/b cyan] a:",
-                    id="modal-title",
+                    classes="modal-title",
                 )
             else:
                 box.border_title = " Gestor de colecciones "
-                yield Label("📁 Gestor de colecciones", id="modal-title")
+                yield Label("📁 Gestor de colecciones", classes="modal-title")
 
             yield Tree(f"{ICON_FOLDER} Colecciones", id="folder-tree")
             yield Static("", id="context-label")
-            yield Input(
-                placeholder="Nombre de la nueva colección",
-                id="folder-input",
-            )
-            yield Static("", id="hint-label")
+            yield Input(placeholder="Nombre de la nueva colección", id="folder-input")
+            yield Static("", id="hint-label", classes="modal-hint")
 
     def on_mount(self) -> None:
         logger.debug("on_mount: modal montado (modo=%s)", self.mode)
@@ -78,7 +80,7 @@ class FolderModal(ModalScreen[str | None]):
         tree.root.data = ""
         tree.root.expand()
 
-        # 👈 Inicializar con TODAS las carpetas expandidas
+        # Expandir TODAS las carpetas al abrir el picker
         folders = FolderManager().get_all()
         self._expanded_paths = set(folders.keys())
 
@@ -89,19 +91,9 @@ class FolderModal(ModalScreen[str | None]):
     # ------------------------------------------------------------------ #
     #  Reconstrucción del árbol
     # ------------------------------------------------------------------ #
-    def _rebuild_tree(self, *, scroll: bool = True) -> None:
-        """Reconstruye el árbol aplicando `_expanded_paths` y `_selected_path`.
-
-        No sobrescribe `_expanded_paths`: eso es estado autoritativo.
-        """
-        logger.debug(
-            "_rebuild_tree: expandidas=%s, seleccionada=%r, scroll=%s",
-            self._expanded_paths,
-            self._selected_path,
-            scroll,
-        )
+    def _rebuild_tree(self) -> None:
+        """Reconstruye el árbol aplicando `_expanded_paths` y `_selected_path`."""
         self._suppress_events = True
-
         tree = self.query_one("#folder-tree", Tree)
         tree.clear()
         tree.root.data = ""
@@ -110,8 +102,8 @@ class FolderModal(ModalScreen[str | None]):
         folders = FolderManager().get_all()
         nodes: dict[tuple, TreeNode] = {(): tree.root}
 
-        # Filtrar expansiones que ya no existen (carpetas eliminadas)
-        self._expanded_paths &= set(folders.keys())
+        # Limpieza: descartar rutas que ya no existen
+        self._expanded_paths &= self._all_valid_paths(folders)
 
         for path in sorted(folders.keys()):
             parts = path.split("/")
@@ -135,21 +127,34 @@ class FolderModal(ModalScreen[str | None]):
         if self._selected_path and tuple(self._selected_path.split("/")) in nodes:
             target = nodes[tuple(self._selected_path.split("/"))]
             tree.select_node(target)
-            if scroll:
-                tree.scroll_to_node(target)
+            tree.scroll_to_node(target)
         elif tree.root.children:
             first = tree.root.children[0]
             tree.select_node(first)
-            if scroll:
-                tree.scroll_to_node(first)
+            tree.scroll_to_node(first)
             if isinstance(first.data, str):
                 self._selected_path = first.data
         else:
             tree.select_node(tree.root)
             self._selected_path = ""
 
-        self._suppress_events = False
+        # 👈 ¡AQUÍ ESTÁ EL TRUCO!
+        # Solo activamos los eventos cuando Textual termine de dibujar este frame
+        self.call_after_refresh(self._enable_events)
         self._update_context()
+
+    def _enable_events(self) -> None:
+        """Reactiva la escucha de eventos después de un ciclo de refresco."""
+        self._suppress_events = False
+
+    @staticmethod
+    def _all_valid_paths(folder_data: dict[str, list[str]]) -> set[str]:
+        paths: set[str] = set()
+        for path in folder_data:
+            parts = path.split("/")
+            for i in range(1, len(parts) + 1):
+                paths.add("/".join(parts[:i]))
+        return paths
 
     # ------------------------------------------------------------------ #
     #  Contexto (label + hint)
@@ -208,36 +213,22 @@ class FolderModal(ModalScreen[str | None]):
             return
         data = event.node.data
         self._selected_path = data if isinstance(data, str) else ""
-        # 👈 No capturamos expansión aquí: solo navegar no cambia la expansión.
         self._update_context()
 
     def on_tree_node_selected(self, event: Tree.NodeSelected) -> None:
-        """Solo usado en modo 'move' para confirmar la carpeta destino."""
         if self._suppress_events:
             return
-        logger.debug(
-            "on_tree_node_selected: node=%r state=%s mode=%s",
-            event.node.data,
-            self._state,
-            self.mode,
-        )
         if self._state in ("renaming", "confirming"):
             return
         if self.mode == "move":
             data = event.node.data
             if isinstance(data, str) and data:
-                logger.info("Moviendo repo a %r (dismiss)", data)
                 self.dismiss(data)
 
     # ------------------------------------------------------------------ #
     #  Input
     # ------------------------------------------------------------------ #
     def on_input_submitted(self, event: Input.Submitted) -> None:
-        logger.debug(
-            "on_input_submitted: value=%r state=%s",
-            event.value,
-            self._state,
-        )
         if self._state == "renaming":
             self._confirm_rename()
             return
@@ -246,16 +237,10 @@ class FolderModal(ModalScreen[str | None]):
         self._create_folder()
 
     # ------------------------------------------------------------------ #
-    #  on_key
+    #  on_key (Navegación manual y confirmaciones)
     # ------------------------------------------------------------------ #
     def on_key(self, event) -> None:
         key = event.key.lower()
-        logger.debug(
-            "on_key: key=%r state=%s focus=%s",
-            key,
-            self._state,
-            self.focused.id if self.focused else "None",
-        )
 
         if self._state == "confirming":
             if key == "y":
@@ -274,7 +259,6 @@ class FolderModal(ModalScreen[str | None]):
                 self._cancel_special_state()
             return
 
-        # Navegación de árbol explícita, SOLO si el foco está en el árbol
         tree = self.query_one("#folder-tree", Tree)
         if tree.has_focus:
             if key == "left":
@@ -290,27 +274,19 @@ class FolderModal(ModalScreen[str | None]):
                 self._update_context()
                 return
 
-    # ------------------------------------------------------------------ #
-    #  Navegación manual del árbol
-    # ------------------------------------------------------------------ #
     def _tree_cursor_left(self) -> None:
-        """Left: colapsa si expandido; si no, sube al padre."""
         tree = self.query_one("#folder-tree", Tree)
         node = tree.cursor_node
         if node is None:
             return
         if node.children and node.is_expanded:
             node.collapse()
-            if isinstance(node.data, str):
+            if isinstance(node.data, str) and node.data:
                 self._expanded_paths.discard(node.data)
-            logger.debug("_tree_cursor_left: colapsado %r", node.data)
-        elif node.parent is not None:
-            if node.parent is not tree.root or tree.show_root:
-                tree.select_node(node.parent)
-                logger.debug("_tree_cursor_left: subido a %r", node.parent.data)
+        elif node.parent is not None and node.parent is not tree.root:
+            tree.select_node(node.parent)
 
     def _tree_cursor_right(self) -> None:
-        """Right: expande si colapsado; si no, baja al primer hijo."""
         tree = self.query_one("#folder-tree", Tree)
         node = tree.cursor_node
         if node is None:
@@ -319,10 +295,8 @@ class FolderModal(ModalScreen[str | None]):
             node.expand()
             if isinstance(node.data, str) and node.data:
                 self._expanded_paths.add(node.data)
-            logger.debug("_tree_cursor_right: expandido %r", node.data)
         elif node.children and node.is_expanded:
             tree.select_node(node.children[0])
-            logger.debug("_tree_cursor_right: bajado a hijo %r", node.children[0].data)
 
     # ------------------------------------------------------------------ #
     #  Acciones
@@ -330,14 +304,11 @@ class FolderModal(ModalScreen[str | None]):
     def _current_path(self) -> str:
         tree = self.query_one("#folder-tree", Tree)
         node = tree.cursor_node
-        if node is None:
-            return ""
-        if node.data is None:
+        if node is None or node.data is None:
             return ""
         return node.data if isinstance(node.data, str) else ""
 
     def action_toggle_panel(self) -> None:
-        logger.debug("action_toggle_panel")
         tree = self.query_one("#folder-tree", Tree)
         input_w = self.query_one("#folder-input", Input)
         if tree.has_focus:
@@ -349,7 +320,6 @@ class FolderModal(ModalScreen[str | None]):
 
     def action_new_child_folder(self) -> None:
         path = self._current_path()
-        logger.debug("action_new_child_folder: padre=%r", path)
         self._selected_path = path
         input_w = self.query_one("#folder-input", Input)
         input_w.value = ""
@@ -360,7 +330,6 @@ class FolderModal(ModalScreen[str | None]):
         self._update_context()
 
     def action_new_root_folder(self) -> None:
-        logger.debug("action_new_root_folder")
         self._selected_path = ""
         tree = self.query_one("#folder-tree", Tree)
         tree.select_node(tree.root)
@@ -372,7 +341,6 @@ class FolderModal(ModalScreen[str | None]):
 
     def action_rename_folder(self) -> None:
         path = self._current_path()
-        logger.debug("action_rename_folder: path=%r", path)
         if not path:
             self.notify(
                 "Selecciona una carpeta (no la raíz).", severity="warning", timeout=2
@@ -388,7 +356,6 @@ class FolderModal(ModalScreen[str | None]):
 
     def action_delete_folder(self) -> None:
         path = self._current_path()
-        logger.debug("action_delete_folder: path=%r", path)
         if not path:
             self.notify(
                 "Selecciona una carpeta (no la raíz).", severity="warning", timeout=2
@@ -397,15 +364,24 @@ class FolderModal(ModalScreen[str | None]):
         folders = FolderManager()
         repos, subs = folders.count_descendants(path)
         if repos == 0 and subs == 0:
-            logger.info("Eliminando carpeta vacía: %r", path)
-            self._delete_path(path)
+            try:
+                folders.delete_folder(path)
+            except GhOrganizerError as e:
+                self.notify(e.user_message, severity="error", timeout=5)
+                return
+            self._expanded_paths = {
+                p
+                for p in self._expanded_paths
+                if not (p == path or p.startswith(path + "/"))
+            }
+            self._selected_path = ""
+            self._rebuild_tree()
             return
         self._state = "confirming"
         self._target_path = path
         self._update_context()
 
     def action_handle_escape(self) -> None:
-        logger.debug("action_handle_escape (state=%s)", self._state)
         if self._state in ("renaming", "confirming"):
             self._cancel_special_state()
             return
@@ -421,15 +397,17 @@ class FolderModal(ModalScreen[str | None]):
     def _create_folder(self) -> None:
         value = self.query_one("#folder-input", Input).value.strip().strip("/")
         if not value:
-            logger.debug("_create_folder: input vacío, ignorado")
             return
 
         parent = self._selected_path
         full_path = f"{parent}/{value}" if parent else value
-        logger.info("Creando carpeta %r", full_path)
 
         folders = FolderManager()
-        folders.create_folder(full_path)
+        try:
+            folders.create_folder(full_path)
+        except GhOrganizerError as e:
+            self.notify(e.user_message, severity="error", timeout=5)
+            return
 
         parts = full_path.split("/")
         for i in range(1, len(parts)):
@@ -444,26 +422,21 @@ class FolderModal(ModalScreen[str | None]):
         self.query_one("#folder-tree", Tree).focus()
         self._update_context()
 
-        self.notify(f"📁 Creada: {full_path}", severity="information", timeout=2)
-
     def _confirm_rename(self) -> None:
         new_name = self.query_one("#folder-input", Input).value.strip().strip("/")
-        logger.debug("_confirm_rename: new_name=%r old=%r", new_name, self._target_path)
         if not new_name:
             self._cancel_special_state()
             return
 
-        old_path = self._target_path
         folders = FolderManager()
+        old_path = self._target_path
         try:
             new_path = folders.rename_folder(old_path, new_name)
-        except (KeyError, ValueError) as e:
-            logger.warning("Rename falló: %s", e)
-            self.notify(f"No se pudo renombrar: {e}", severity="error", timeout=3)
+        except GhOrganizerError as e:
+            self.notify(e.user_message, severity="error", timeout=4)
             self._cancel_special_state()
             return
 
-        # Remapear prefijos en el set de expansión
         self._expanded_paths = {
             (new_path + p[len(old_path) :]) if p.startswith(old_path) else p
             for p in self._expanded_paths
@@ -472,50 +445,24 @@ class FolderModal(ModalScreen[str | None]):
         self._cancel_special_state()
         self._rebuild_tree()
 
-        # 👈 Notificación de rename
-        self.notify(
-            f"✏️  Renombrada: {old_path} → {new_path}",
-            severity="information",
-            timeout=2,
-        )
-
-    def _delete_path(self, path: str) -> None:
-        """Elimina `path` y sus descendientes, manteniendo la posición visual del árbol."""
-        logger.info("Eliminando carpeta %r", path)
+    def _confirm_delete(self) -> None:
         folders = FolderManager()
-        folders.delete_folder(path)
-
-        # Limpiar expansiones de las rutas eliminadas
+        try:
+            folders.delete_folder(self._target_path)
+        except GhOrganizerError as e:
+            self.notify(e.user_message, severity="error", timeout=5)
+            self._cancel_special_state()
+            return
         self._expanded_paths = {
             p
             for p in self._expanded_paths
-            if not (p == path or p.startswith(path + "/"))
+            if not (p == self._target_path or p.startswith(self._target_path + "/"))
         }
-
-        remaining = sorted(FolderManager().get_all().keys())
-        next_path: str | None = None
-        for p in remaining:
-            if p > path:
-                next_path = p
-                break
-        if next_path is None and remaining:
-            next_path = remaining[-1]
-        self._selected_path = next_path or ""
-
-        self._rebuild_tree(scroll=False)
-
-        self.notify(
-            f"🗑  Eliminada: {path}",
-            severity="warning",
-            timeout=2,
-        )
-
-    def _confirm_delete(self) -> None:
-        self._delete_path(self._target_path)
+        self._selected_path = ""
         self._cancel_special_state()
+        self._rebuild_tree()
 
     def _cancel_special_state(self) -> None:
-        logger.debug("_cancel_special_state: volviendo a 'creating'")
         self._state = "creating"
         self._target_path = ""
         input_w = self.query_one("#folder-input", Input)

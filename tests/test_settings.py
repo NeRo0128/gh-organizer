@@ -4,8 +4,8 @@
 import json
 from pathlib import Path
 
-from github_organizer.services import settings
-from github_organizer.services.settings import (
+from gh_organizer.services import settings
+from gh_organizer.services.settings import (
     ensure_dirs,
     load_folders,
     save_folders,

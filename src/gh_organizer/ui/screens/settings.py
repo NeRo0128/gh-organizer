@@ -23,6 +23,7 @@ from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.screen import Screen
 from textual.widgets import Footer, Header, Static
 
+from gh_organizer.core.exceptions import GhOrganizerError
 from gh_organizer.services import load_token, preferences
 from gh_organizer.services.token_info import (
     TOKEN_PERMISSIONS,
@@ -478,8 +479,16 @@ class SettingsScreen(Screen):
         w.update(self._format_row(row, pending=data.get("pending", False)))
 
     def _apply_change(self, key: str, value) -> None:
+        previous = self._prefs.get(key)
         self._prefs[key] = value
-        preferences.set_value(key, value)
+        try:
+            preferences.set_value(key, value)
+        except GhOrganizerError as e:
+            # Revertimos en memoria: lo que se ve debe coincidir con el disco.
+            self._prefs[key] = previous
+            self.notify(e.user_message, severity="error", timeout=6)
+            self._render_section()
+            return
         if key == "theme":
             self.app.theme = value
             self._update_topbar()  # ← refrescar la línea de contexto

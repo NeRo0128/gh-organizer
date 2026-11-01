@@ -1,27 +1,63 @@
 # src/gh_organizer/services/git.py
-"""Operaciones locales con git."""
+"""Operaciones locales con git.
+
+``clone_repo`` no devuelve códigos de error: o termina bien, o lanza una
+subclase de ``GhOrganizerError`` con un ``user_message`` listo para la UI.
+"""
 
 import logging
+import os
+import shutil
 import subprocess
 from pathlib import Path
 
+from gh_organizer.core.exceptions import (
+    ClonePermissionError,
+    CloneTimeoutError,
+    GitNotInstalledError,
+    TargetExistsError,
+)
+from gh_organizer.utils.errors import from_git_clone, from_os_error
+
 logger = logging.getLogger(__name__)
 
+CLONE_TIMEOUT_SECONDS = 300
 
-def clone_repo(url: str, target: Path) -> tuple[bool, str]:
-    """Clona un repositorio.
+
+def ensure_git_available() -> None:
+    """Lanza ``GitNotInstalledError`` si ``git`` no está en el PATH."""
+    if shutil.which("git") is None:
+        logger.error("git no está instalado o no está en el PATH")
+        raise GitNotInstalledError()
+
+
+def clone_repo(url: str, target: Path) -> Path:
+    """Clona ``url`` en ``target``.
 
     Args:
         url: URL HTTP(S) del repo.
         target: Ruta destino local.
 
     Returns:
-        (ok, mensaje) — el mensaje es un error si ok=False.
-    """
-    if target.exists():
-        return False, f"Ya existe: {target}"
+        La ruta donde quedó el clon.
 
-    target.parent.mkdir(parents=True, exist_ok=True)
+    Raises:
+        GhOrganizerError: (o subclase) con ``user_message`` para el usuario.
+    """
+    ensure_git_available()
+
+    target = target.expanduser()
+    if target.exists():
+        raise TargetExistsError(str(target))
+
+    try:
+        target.parent.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        raise from_os_error(e, str(target.parent)) from e
+
+    if not os.access(target.parent, os.W_OK | os.X_OK):
+        raise ClonePermissionError(str(target.parent))
+
     logger.info("Clonando %s → %s", url, target)
 
     try:
@@ -30,19 +66,23 @@ def clone_repo(url: str, target: Path) -> tuple[bool, str]:
             capture_output=True,
             text=True,
             check=False,
-            timeout=300,
+            timeout=CLONE_TIMEOUT_SECONDS,
         )
-    except subprocess.TimeoutExpired:
+    except subprocess.TimeoutExpired as e:
         logger.warning("Timeout clonando %s", url)
-        return False, "Timeout (>5min)"
+        raise CloneTimeoutError() from e
     except OSError as e:
-        logger.error("Error lanzando git: %s", e)
-        return False, f"Error: {e}"
+        raise from_os_error(e, str(target)) from e
 
     if result.returncode != 0:
-        err = (result.stderr or "").strip()[:200] or "Error desconocido"
-        logger.warning("git clone falló (rc=%d): %s", result.returncode, err)
-        return False, err
+        error = from_git_clone(result.returncode, result.stderr or "", str(target))
+        logger.warning(
+            "git clone falló (rc=%d): %s", result.returncode, error.user_message
+        )
+        raise error
 
     logger.info("Clonado OK: %s", target)
-    return True, f"Clonado en {target}"
+    return target
+
+
+__all__ = ["CLONE_TIMEOUT_SECONDS", "clone_repo", "ensure_git_available"]

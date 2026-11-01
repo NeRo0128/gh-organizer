@@ -9,6 +9,7 @@ from gh_organizer.ui.widgets.repo_tree import (
     RepoHighlighted,
     RepoTree,
 )
+from gh_organizer.ui.widgets.status_bar import StatusBar
 
 __all__ = [
     "CommitsPanel",
@@ -17,4 +18,5 @@ __all__ = [
     "RepoDetail",
     "RepoHighlighted",
     "RepoTree",
+    "StatusBar",
 ]
