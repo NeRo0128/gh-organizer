@@ -91,15 +91,58 @@ gh-organizer
 Everything lives in a single TOML file:
 
 ```toml
-# ~/.config/gh-organizer/config.toml
+# ~/.config/github-organizer/config.toml
 
-theme = "catppuccin-mocha"   # Built-in or custom themes
-clone_dir = "~/Projects"     # Where repos are cloned
-commits_limit = 10           # Max commits in the details panel
+[preferences]
+theme = "github"             # github | tokyo-night | catppuccin-mocha | github-light
+language = "auto"            # auto | es | en
+clone_dir = "~/github"       # Where repos are cloned
+tree_mode = "remember"       # remember | expanded | collapsed
 nerd_fonts = true            # Language icons in the UI
+
+[folders]
+"Work/Web" = ["my-website", "my-docs"]
+
+[tree_state]
+expanded = ["Work", "Work/Web"]
 ```
 
-You can customize the theme, the default clone directory, and how many commits are shown in the details panel. Edit it with your favorite editor; changes apply on restart.
+You can customize the theme, the language, the default clone directory and how
+the tree is restored. Edit it with your favorite editor; changes apply on restart
+(the language can also be changed live from the Settings screen with `s`).
+
+---
+
+## 🌍 Languages
+
+The interface is available in **Spanish** (source language) and **English**.
+By default the app follows your system locale (`LANG`/`LC_ALL`, then
+`locale.getlocale()`); if the locale is not supported it falls back to Spanish.
+Change it at any time in **Settings → Idioma**, or with `language = "es" | "en" | "auto"`
+in `config.toml`.
+
+Translations live in `src/gh_organizer/locales/<lang>/LC_MESSAGES/gh_organizer.po`.
+
+<details>
+<summary>Adding a new language</summary>
+
+```bash
+# 1. Create the catalog skeleton (one empty msgstr per msgid)
+uv run python scripts/i18n.py new-lang fr
+
+# 2. Translate it. Then compile .po → .mo
+uv run python scripts/i18n.py compile
+
+# 3. Check what is still missing
+uv run python scripts/i18n.py stats
+```
+
+Finally add the code to `SUPPORTED_LANGUAGES` in `src/gh_organizer/i18n.py` and to
+`VALID_LANGUAGES` / `LANGUAGE_NAMES` in `src/gh_organizer/services/preferences.py`.
+The `.mo` files are committed, so a plain `uv sync` is enough to ship the new
+language (the PyInstaller build copies `locales/` automatically).
+
+</details>
 
 ---
 
@@ -116,10 +159,10 @@ cd gh-organizer
 uv sync
 
 # 3. Run the test suite
-pytest
+uv run pytest
 
 # 4. Check code style
-ruff check .
+uv run ruff check src tests scripts
 ```
 
 - 🐛 **Found a bug?** Open an [Issue](https://github.com/your-username/gh-organizer/issues).
