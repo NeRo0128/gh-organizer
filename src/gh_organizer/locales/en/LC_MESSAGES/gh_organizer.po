@@ -572,3 +572,30 @@ msgstr "🔒 Token deleted."
 
 msgid "🔒 Tu token no tiene el permiso [b]%(scope)s[/b].\nEdítalo en GitHub → Settings → Developer settings → Tokens."
 msgstr "🔒 Your token lacks the [b]%(scope)s[/b] permission.\nEdit it on GitHub → Settings → Developer settings → Tokens."
+
+msgid "(crítica)"
+msgstr "(critical)"
+
+msgid "Continuar de todas formas"
+msgstr "Continue anyway"
+
+msgid "Entendido"
+msgstr "Got it"
+
+msgid "Verificación de dependencias"
+msgstr "Dependency check"
+
+msgid "instalado"
+msgstr "installed"
+
+msgid "no instalado"
+msgstr "not installed"
+
+msgid "ℹ️  Algunas dependencias opcionales faltan. La app funcionará con funcionalidad reducida."
+msgstr "ℹ️  Some optional dependencies are missing. The app will work with reduced functionality."
+
+msgid "⚠️  Falta una dependencia crítica. La app funcionará pero no podrás clonar repositorios."
+msgstr "⚠️  A critical dependency is missing. The app will work but you won't be able to clone repositories."
+
+msgid "🔍 Estado de dependencias"
+msgstr "🔍 Dependency status"

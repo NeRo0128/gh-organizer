@@ -51,14 +51,22 @@ build-backend = "hatchling.build"
 packages = ["src/gh_organizer"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/gh_organizer/**/*.tcss"]
+include = [
+    "src/gh_organizer/**/*.tcss",
+    "src/gh_organizer/**/*.mo",
+]
 
 [tool.hatch.build.targets.wheel.force-include]
+# Estilos (tcss)
 "src/gh_organizer/ui/styles/auth.tcss" = "gh_organizer/ui/styles/auth.tcss"
 "src/gh_organizer/ui/styles/base.tcss" = "gh_organizer/ui/styles/base.tcss"
 "src/gh_organizer/ui/styles/main.tcss" = "gh_organizer/ui/styles/main.tcss"
 "src/gh_organizer/ui/styles/modals.tcss" = "gh_organizer/ui/styles/modals.tcss"
 "src/gh_organizer/ui/styles/settings.tcss" = "gh_organizer/ui/styles/settings.tcss"
+
+# Traducciones compiladas (mo)
+"src/gh_organizer/locales/es/LC_MESSAGES/gh_organizer.mo" = "gh_organizer/locales/es/LC_MESSAGES/gh_organizer.mo"
+"src/gh_organizer/locales/en/LC_MESSAGES/gh_organizer.mo" = "gh_organizer/locales/en/LC_MESSAGES/gh_organizer.mo"
 
 [dependency-groups]
 dev = ["appimage>=4.0.1", "pytest>=9.2.0"]

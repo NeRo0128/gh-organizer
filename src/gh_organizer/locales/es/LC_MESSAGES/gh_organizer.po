@@ -572,3 +572,30 @@ msgstr "🔒 Token eliminado."
 
 msgid "🔒 Tu token no tiene el permiso [b]%(scope)s[/b].\nEdítalo en GitHub → Settings → Developer settings → Tokens."
 msgstr "🔒 Tu token no tiene el permiso [b]%(scope)s[/b].\nEdítalo en GitHub → Settings → Developer settings → Tokens."
+
+msgid "(crítica)"
+msgstr "(crítica)"
+
+msgid "Continuar de todas formas"
+msgstr "Continuar de todas formas"
+
+msgid "Entendido"
+msgstr "Entendido"
+
+msgid "Verificación de dependencias"
+msgstr "Verificación de dependencias"
+
+msgid "instalado"
+msgstr "instalado"
+
+msgid "no instalado"
+msgstr "no instalado"
+
+msgid "ℹ️  Algunas dependencias opcionales faltan. La app funcionará con funcionalidad reducida."
+msgstr "ℹ️  Algunas dependencias opcionales faltan. La app funcionará con funcionalidad reducida."
+
+msgid "⚠️  Falta una dependencia crítica. La app funcionará pero no podrás clonar repositorios."
+msgstr "⚠️  Falta una dependencia crítica. La app funcionará pero no podrás clonar repositorios."
+
+msgid "🔍 Estado de dependencias"
+msgstr "🔍 Estado de dependencias"
