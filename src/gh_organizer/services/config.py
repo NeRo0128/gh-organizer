@@ -29,6 +29,7 @@ _last_error: CorruptedConfigError | None = None
 # Estructura base si el archivo no existe o está corrupto
 _DEFAULT_CONFIG = {
     "preferences": {
+        "language": "auto",
         "theme": "github",
         "tree_mode": "remember",
         "clone_dir": "~/github",

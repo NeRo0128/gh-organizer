@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 # ──────────────────────────────────────────────────────────────────── #
 DEFAULTS: dict[str, Any] = {
     # Apariencia
+    "language": "auto",
     "theme": "github",
     "tree_mode": "remember",
     "show_nerd_icons": True,
@@ -49,6 +50,13 @@ PENDING_SETTINGS: frozenset[str] = frozenset(
     }
 )
 
+VALID_LANGUAGES: tuple[str, ...] = ("auto", "es", "en")
+LANGUAGE_NAMES: dict[str, str] = {
+    "auto": "Automático",
+    "es": "Español",
+    "en": "English",
+}
+
 VALID_THEMES: tuple[str, ...] = (
     "github",
     "tokyo-night",
@@ -70,6 +78,8 @@ def load_all() -> dict[str, Any]:
     merged.update({k: v for k, v in data.items() if v is not None})
 
     # Validación de enumerados
+    if merged["language"] not in VALID_LANGUAGES:
+        merged["language"] = DEFAULTS["language"]
     if merged["theme"] not in VALID_THEMES:
         merged["theme"] = DEFAULTS["theme"]
     if merged["tree_mode"] not in VALID_TREE_MODES:
@@ -116,6 +126,11 @@ def is_pending(key: str) -> bool:
 # ──────────────────────────────────────────────────────────────────── #
 #  Helpers específicos (compatibilidad)
 # ──────────────────────────────────────────────────────────────────── #
+def load_language() -> str:
+    """Idioma configurado ('auto', 'es' o 'en')."""
+    return get("language")
+
+
 def load_theme() -> str:
     return get("theme")
 
