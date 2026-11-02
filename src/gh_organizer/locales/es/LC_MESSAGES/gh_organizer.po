@@ -643,3 +643,6 @@ msgstr "⚠️ Pulsa Enter otra vez para confirmar el restablecimiento"
 
 msgid "🌐 Abriendo releases en el navegador…"
 msgstr "🌐 Abriendo releases en el navegador…"
+
+msgid "Espera un momento"
+msgstr "Espera un momento"

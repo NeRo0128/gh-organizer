@@ -17,6 +17,7 @@ import webbrowser
 from dataclasses import dataclass, field
 from typing import Any, ClassVar, Literal
 
+from textual import work
 from textual.app import ComposeResult
 from textual.binding import BindingType
 from textual.containers import Horizontal, Vertical, VerticalScroll
@@ -187,6 +188,8 @@ class SettingsScreen(Screen):
         self._account_scopes: set[str] = set()
         self._account_token: str = ""
         self._pending_reset: bool = False
+        self._account_loaded: bool = False
+        self._account_error: str | None = None
 
     # ---------------------------------------------------------------- #
     #  Composición
@@ -211,15 +214,38 @@ class SettingsScreen(Screen):
 
     def on_mount(self) -> None:
         self._prefs = preferences.load_all()
-        self._load_account_info()
         self._update_topbar()
         self._render_section()
         self._update_tabs()
+        # Carga de cuenta en segundo plano: no bloquea la UI
+        self._load_account_info_async()
 
-    def _load_account_info(self) -> None:
-        token = load_token() or ""
+    @work(thread=True, exclusive=True, group="account", exit_on_error=False)
+    def _load_account_info_async(self) -> None:
+        """Worker: carga token y scopes sin bloquear la UI."""
+        try:
+            token = load_token() or ""
+            scopes = get_token_scopes(token) if token else set()
+            self.app.call_from_thread(self._on_account_loaded, token, scopes)
+        except Exception as e:
+            logger.exception("Error cargando info de cuenta")
+            self.app.call_from_thread(self._on_account_error, str(e))
+
+    def _on_account_loaded(self, token: str, scopes: set[str]) -> None:
+        """Callback en hilo principal: actualiza la sección Cuenta."""
         self._account_token = token
-        self._account_scopes = get_token_scopes(token) if token else set()
+        self._account_scopes = scopes
+        self._account_loaded = True
+        self._account_error = None
+        # Si el usuario ya está en Cuenta, re-renderizar
+        if self._section_id() == "account":
+            self._render_section()
+
+    def _on_account_error(self, msg: str) -> None:
+        self._account_loaded = True
+        self._account_error = msg
+        if self._section_id() == "account":
+            self._render_section()
 
     # ---------------------------------------------------------------- #
     #  Render
@@ -336,6 +362,36 @@ class SettingsScreen(Screen):
     #  Sección Cuenta
     # ---------------------------------------------------------------- #
     def _build_account(self, parent: Vertical) -> None:
+        if not self._account_loaded:
+            parent.mount(
+                self._build_row(
+                    SettingRow(
+                        "_loading",
+                        "⏳ Cargando información de cuenta...",
+                        "info",
+                        value=f"[dim]{_('Espera un momento')}[/dim]",
+                        as_markup=True,
+                    )
+                )
+            )
+            return
+
+        # Estado de error
+        if self._account_error is not None:
+            parent.mount(
+                self._build_row(
+                    SettingRow(
+                        "_error",
+                        "❌ Error",
+                        "info",
+                        value=f"[red]{self._account_error}[/red]",
+                        as_markup=True,
+                    )
+                )
+            )
+            return
+
+        # Datos cargados
         token = self._account_token
         parent.mount(
             self._build_row(
@@ -667,6 +723,7 @@ class SettingsScreen(Screen):
         delete_token()
         self._account_token = ""
         self._account_scopes = set()
+        self._account_loaded = False
         self._render_section()
         self.notify(_("🔒 Token eliminado."), severity="information", timeout=3)
 

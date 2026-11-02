@@ -644,3 +644,6 @@ msgstr "⚠️ Press Enter again to confirm the reset"
 
 msgid "🌐 Abriendo releases en el navegador…"
 msgstr "🌐 Opening releases in browser…"
+
+msgid "Espera un momento"
+msgstr "Please wait"
