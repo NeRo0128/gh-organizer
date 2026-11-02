@@ -6,7 +6,15 @@ readme = "README.md"
 authors = [{ name = "Nero", email = "castillovegarodolfogilberto@gmail.com" }]
 license = { text = "MIT" }
 requires-python = ">=3.14"
-keywords = ["github", "tui", "textual", "cli", "organizer", "repositories", "collections"]
+keywords = [
+    "github",
+    "tui",
+    "textual",
+    "cli",
+    "organizer",
+    "repositories",
+    "collections",
+]
 dependencies = [
     "keyring>=25.7.0",
     "nerdfont>=3.4.0.post1",
@@ -29,11 +37,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=9.2.0",
-    "pytest-cov",
-    "ruff",
-]
+dev = ["pytest>=9.2.0", "pytest-cov", "ruff"]
 
 [project.scripts]
 gh-organizer = "gh_organizer.__main__:main"
@@ -49,20 +53,6 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/gh_organizer"]
-
-[tool.hatch.build.targets.sdist]
-include = [
-    "src/gh_organizer/**/*.tcss",
-    "src/gh_organizer/**/*.mo",
-]
-
-[tool.hatch.build.targets.wheel.force-include]
-# Estilos (tcss)
-"src/gh_organizer/ui/styles/auth.tcss" = "gh_organizer/ui/styles/auth.tcss"
-"src/gh_organizer/ui/styles/base.tcss" = "gh_organizer/ui/styles/base.tcss"
-"src/gh_organizer/ui/styles/main.tcss" = "gh_organizer/ui/styles/main.tcss"
-"src/gh_organizer/ui/styles/modals.tcss" = "gh_organizer/ui/styles/modals.tcss"
-"src/gh_organizer/ui/styles/settings.tcss" = "gh_organizer/ui/styles/settings.tcss"
 
 # Traducciones compiladas (mo)
 "src/gh_organizer/locales/es/LC_MESSAGES/gh_organizer.mo" = "gh_organizer/locales/es/LC_MESSAGES/gh_organizer.mo"
