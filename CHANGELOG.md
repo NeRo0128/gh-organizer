@@ -10,6 +10,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 _Planned for v1.2.0: editor integration, batch git operations, remote search,
 multi-account support. See [Issues](https://github.com/NeRo0128/gh-organizer/issues)._
 
+## [1.1.1] - 2026-11-02
+
+### Fixed
+
+- **Packaging (critical)**: the `[tool.hatch.build.targets.sdist]` section
+  restricted the source distribution to only `.py` and `.tcss` files,
+  overriding Hatchling's default behavior. As a result, the wheel published
+  to PyPI (v1.1.0) was missing `__main__.py` and dozens of other modules,
+  causing `ModuleNotFoundError: No module named 'gh_organizer.__main__'`
+  when installing from PyPI with `uv tool install` or `pip install`.
+
+  Now the sdist includes the full `src/gh_organizer/` tree by default
+  (verified: 46 `.py` files + 5 `.tcss` + 2 `.mo` in the wheel).
+
+### Changed
+
+- **CI**: new `verify-wheel` job that builds the wheel, asserts that
+  `__main__.py` and the static files (`.tcss`/`.mo`) are present, and
+  installs the wheel in a fresh venv to smoke-test the entry point. This
+  prevents regressions like the v1.1.0 → v1.1.1 issue from reaching PyPI.
+
+- **CI**: `ruff` and `pytest-cov` moved into `[dependency-groups] dev` so
+  that `uv sync --frozen` (used by CI) installs them. Before they were only
+  in `[project.optional-dependencies]`, which `uv sync` does not install,
+  causing `Failed to spawn: ruff` in GitHub Actions.
+
 ## [1.1.0] - 2026-11-02
 
 ### Added
@@ -90,7 +116,8 @@ multi-account support. See [Issues](https://github.com/NeRo0128/gh-organizer/iss
 - **Fixed** para correcciones de errores.
 - **Security** para vulnerabilidades corregidas.
 
-[Unreleased]: https://github.com/NeRo0128/gh-organizer/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/NeRo0128/gh-organizer/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/NeRo0128/gh-organizer/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/NeRo0128/gh-organizer/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/NeRo0128/gh-organizer/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/NeRo0128/gh-organizer/releases/tag/v1.0.0
