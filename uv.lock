@@ -324,7 +324,7 @@ wheels = [
 
 [[package]]
 name = "gh-organizer"
-version = "1.1.0"
+version = "1.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "keyring" },
@@ -346,6 +346,8 @@ dev = [
 dev = [
     { name = "appimage" },
     { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
 ]
 
 [package.metadata]
@@ -366,6 +368,8 @@ provides-extras = ["dev"]
 dev = [
     { name = "appimage", specifier = ">=4.0.1" },
     { name = "pytest", specifier = ">=9.2.0" },
+    { name = "pytest-cov" },
+    { name = "ruff", specifier = ">=0.17.0" },
 ]
 
 [[package]]

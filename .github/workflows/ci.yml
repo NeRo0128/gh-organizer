@@ -11,22 +11,47 @@ jobs:
     name: Lint & Tests
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.14"
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-
+      - uses: astral-sh/setup-uv@v5
       - name: Install dependencies
         run: uv sync --frozen
-
       - name: Lint with ruff
         run: uv run ruff check src/ tests/ scripts/
-
       - name: Run tests
         run: uv run pytest -q
+
+  verify-wheel:
+    name: Verify wheel installs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - uses: astral-sh/setup-uv@v5
+      - name: Install dependencies
+        run: uv sync --frozen
+      - name: Build wheel
+        run: uv build
+      - name: Verify __main__.py in wheel
+        run: |
+          if ! unzip -l dist/*.whl | grep -q "gh_organizer/__main__.py"; then
+            echo "❌ __main__.py is missing from the wheel"
+            exit 1
+          fi
+          echo "✅ __main__.py is present"
+      - name: Verify static files
+        run: |
+          TCSS=$(unzip -l dist/*.whl | grep -c "\.tcss$")
+          MO=$(unzip -l dist/*.whl | grep -c "\.mo$")
+          echo "tcss: $TCSS (expected 5), mo: $MO (expected 2)"
+          [ "$TCSS" -ge 5 ] && [ "$MO" -ge 2 ]
+      - name: Install from wheel and smoke test
+        run: |
+          uv venv /tmp/test-env
+          source /tmp/test-env/bin/activate
+          uv pip install dist/*.whl
+          python -c "from gh_organizer.__main__ import main; print('✅ Entry point imports')"

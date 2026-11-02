@@ -59,7 +59,7 @@ packages = ["src/gh_organizer"]
 "src/gh_organizer/locales/en/LC_MESSAGES/gh_organizer.mo" = "gh_organizer/locales/en/LC_MESSAGES/gh_organizer.mo"
 
 [dependency-groups]
-dev = ["appimage>=4.0.1", "pytest>=9.2.0"]
+dev = ["appimage>=4.0.1", "pytest>=9.2.0", "pytest-cov", "ruff>=0.17.0"]
 
 [tool.appimage]
 build_pylock = "pylock.build.toml"
