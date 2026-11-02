@@ -647,3 +647,42 @@ msgstr "🌐 Opening releases in browser…"
 
 msgid "Espera un momento"
 msgstr "Please wait"
+
+msgid "Logs"
+msgstr "Logs"
+
+msgid "📋 Registros de la aplicación"
+msgstr "📋 Application logs"
+
+msgid "Abrir carpeta"
+msgstr "Open folder"
+
+msgid "Refrescar"
+msgstr "Refresh"
+
+msgid "Logs actualizados"
+msgstr "Logs refreshed"
+
+msgid "✅ Logs copiados al portapapeles"
+msgstr "✅ Logs copied to clipboard"
+
+msgid "❌ No se pudo leer el archivo de log"
+msgstr "❌ Could not read the log file"
+
+msgid "📂 Abriendo carpeta de logs"
+msgstr "📂 Opening logs folder"
+
+msgid "No hay logs disponibles todavía."
+msgstr "No logs available yet."
+
+msgid "No hay herramienta de portapapeles (instala wl-clipboard o xclip)."
+msgstr "No clipboard tool available (install wl-clipboard or xclip)."
+
+msgid "Ninguna herramienta de portapapeles funcionó."
+msgstr "No clipboard tool worked."
+
+msgid "Ver logs"
+msgstr "View logs"
+
+msgid "Copiar"
+msgstr "Copy"

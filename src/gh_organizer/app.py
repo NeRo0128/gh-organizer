@@ -82,3 +82,9 @@ class GithubOrganizerApp(App):
         """Abre el modal de dependencias bajo demanda (Ctrl+D)."""
         statuses = check_all_dependencies()
         self.push_screen(DependenciesModal(statuses))
+
+    def action_show_logs(self) -> None:
+        """Abre el modal de logs bajo demanda (Ctrl+L)."""
+        from gh_organizer.ui.modals import LogsModal
+
+        self.push_screen(LogsModal())

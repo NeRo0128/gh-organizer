@@ -18,6 +18,7 @@ from dataclasses import dataclass, field
 from typing import Any, ClassVar, Literal
 
 from textual import work
+from textual._context import NoActiveAppError
 from textual.app import ComposeResult
 from textual.binding import BindingType
 from textual.containers import Horizontal, Vertical, VerticalScroll
@@ -222,14 +223,41 @@ class SettingsScreen(Screen):
 
     @work(thread=True, exclusive=True, group="account", exit_on_error=False)
     def _load_account_info_async(self) -> None:
-        """Worker: carga token y scopes sin bloquear la UI."""
+        """Worker: carga token y scopes sin bloquear la UI.
+
+        Si el widget se desmonta mientras carga (usuario cerró Settings),
+        el worker sale silenciosamente sin intentar tocar la UI.
+        """
+        from textual.worker import get_current_worker
+
+        worker = get_current_worker()
         try:
             token = load_token() or ""
             scopes = get_token_scopes(token) if token else set()
-            self.app.call_from_thread(self._on_account_loaded, token, scopes)
         except Exception as e:
             logger.exception("Error cargando info de cuenta")
-            self.app.call_from_thread(self._on_account_error, str(e))
+            self._safe_call_from_thread(self._on_account_error, str(e))
+            return
+
+        if worker.is_cancelled:
+            return
+
+        self._safe_call_from_thread(self._on_account_loaded, token, scopes)
+
+    def _safe_call_from_thread(self, callback, *args) -> None:
+        """Llama a `callback` en el hilo principal solo si el widget sigue montado.
+
+        Evita `NoActiveAppError` cuando el usuario cierra Settings mientras
+        el worker sigue corriendo.
+        """
+        try:
+            if not self.is_mounted or not self.app.is_running:
+                return
+            self.app.call_from_thread(callback, *args)
+        except NoActiveAppError as exc:
+            logger.debug("Widget desmontado, callback descartado: %s", exc)
+        except RuntimeError as exc:
+            logger.debug("Hilo principal no disponible, callback descartado: %s", exc)
 
     def _on_account_loaded(self, token: str, scopes: set[str]) -> None:
         """Callback en hilo principal: actualiza la sección Cuenta."""
@@ -505,7 +533,7 @@ class SettingsScreen(Screen):
             self._build_row(
                 SettingRow(
                     "_view_logs",
-                    "Ver logs (próximamente)",
+                    "Ver logs",
                     "action",
                     value=f"[dim]{_('Enter para abrir')}[/dim]",
                     as_markup=True,
@@ -715,6 +743,10 @@ class SettingsScreen(Screen):
             else:
                 self._pending_reset = False
                 self._reset_preferences()
+        elif key == "_view_logs":
+            from gh_organizer.ui.modals import LogsModal
+
+            self.app.push_screen(LogsModal())
 
     def _logout(self) -> None:
         if not self._account_token:

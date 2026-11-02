@@ -33,7 +33,8 @@ GLOBAL: list[BindingType] = [
     Binding("q", "quit", "Salir"),
     Binding("ctrl+c", "quit", "Salir"),
     Binding("ctrl+t", "push_token_screen", "Token"),
-    Binding("ctrl+d", "show_dependencies", "Dependencias"),  # 👈 nuevo
+    Binding("ctrl+d", "show_dependencies", "Dependencias"),
+    Binding("ctrl+l", "show_logs", "Logs"),
 ]
 
 MAIN: list[BindingType] = [
@@ -84,4 +85,11 @@ DEPENDENCIES: list[BindingType] = [
     Binding("escape", "cancel", "Salir", priority=True),
     Binding("y", "confirm", "Continuar", priority=True),
     Binding("n", "cancel", "Salir", priority=True),
+]
+LOGS: list[BindingType] = [
+    Binding("escape", "close", "Cerrar", priority=True),
+    Binding("q", "close", "Cerrar", priority=True),
+    Binding("r", "refresh", "Refrescar", priority=True),
+    Binding("c", "copy", "Copiar", priority=True),
+    Binding("o", "open_folder", "Abrir carpeta", priority=True),
 ]
