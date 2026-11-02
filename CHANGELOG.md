@@ -7,37 +7,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+_Planned for v1.2.0: editor integration, batch git operations, remote search,
+multi-account support. See [Issues](https://github.com/NeRo0128/gh-organizer/issues)._
 
-- Verificación de dependencias externas (git, keyring, GitHub CLI) al arranque,
-  con modal de estado y opciones para continuar o salir.
-
-## [1.1.0] - 2026-11-01
+## [1.1.0] - 2026-11-02
 
 ### Added
 
-- Soporte de internacionalización (i18n) en español e inglés con hot-reload
-  desde la pantalla de ajustes.
+- **Dependency detection** (#16): at startup the app checks for `git` (critical),
+  `keyring` and `gh` CLI (optional). On Linux it detects the distro (Arch/Debian/
+  Fedora) to show the correct install command. If `git` is missing, a blocking
+  modal offers to continue anyway or exit. Global shortcut `Ctrl+D` reopens it.
 
-- Pantalla de ayuda (cheat sheet) con los atajos de teclado.
+- **Logs modal** (#18): a new screen accessible with `Ctrl+L` (or from
+  _Settings → Avanzado → Ver logs_) shows the last 200 lines of `app.log`,
+  color-coded by level (DEBUG, INFO, WARNING, ERROR). Buttons to copy to the
+  clipboard (`wl-copy`/`xclip`/`xsel`/`pbcopy`), open the folder, refresh, and
+  close. Auto-refresh with `r`, copy with `c`, open folder with `o`.
 
-- StatusBar dinámica.
+- **Advanced settings section**: version, config path, open config folder,
+  view logs, view releases on GitHub, and "Reset preferences" with
+  double-Enter confirmation.
 
-- Workflow de CI (`.github/workflows/ci.yml`) con lint + tests.
+- **PyPI Trusted Publishing** (#12): the release workflow now publishes the
+  wheel and sdist to PyPI automatically when a `v*` tag is pushed, using OIDC
+  (no manual token required).
+
+- **i18n catalogs**: 224 entries in Spanish and English (0 untranslated).
+
+### Changed
+
+- **Settings redesign**: unified topbar with MainScreen, contextual `StatusBar`
+  (instead of the tall `Footer`), and section "Avanzado". Account info is now
+  loaded in a background worker, so the screen opens instantly.
+
+- **Hot-reload i18n**: switching language in Settings recomposes the current
+  screen and resets the dirty flag correctly (bug fixed).
+
+- **Wheel packaging**: `.tcss` styles and `.mo` catalogs are now shipped inside
+  the wheel and the AppImage. Windows workflow uses the correct path separator
+  (`;`) for `--add-data`.
+
+- **`platformdirs`** is now declared as a direct dependency (it was transitive
+  through Textual).
 
 ### Fixed
 
-- Manejo robusto de errores: las excepciones de PyGithub, OSError y
-  Subprocess se traducen a excepciones de dominio; ninguna llega a la UI.
+- `NoActiveAppError` raised when closing Settings during account loading
+  (worker now checks `is_mounted` before calling back to the UI).
+- `i18n_dirty` was being reset to `True` instead of `False` in
+  `MainScreen.on_screen_resume`, causing unnecessary recompositions.
+- `auth.tcss` was not found in the packaged wheel/AppImage (moved to
+  `ui/styles/` and added to `force-include`).
+- Two orphan msgids removed from catalogs (`Ver logs (próximamente)`,
+  `Próximamente: visor de logs`); unified under `Ver logs`.
 
 ## [1.0.1] - 2026-10-21
 
 ### Added
 
 - Auto-organización de repositorios por lenguaje, visibilidad o ambos.
-
 - Paneles de commits y releases en la vista de detalle.
-
 - Persistencia de la organización en un único archivo TOML.
 
 ### Fixed

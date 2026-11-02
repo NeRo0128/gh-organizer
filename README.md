@@ -29,8 +29,6 @@
 
 ![gh-organizer: main view with collections panel on the left, repository list in the center, and details panel with recent commits and releases on the right](docs/assets/image.png)
 
-![Demo](docs/assets/demo.gif)
-
 ---
 
 ## 🎯 The Problem and the Solution
@@ -53,6 +51,8 @@ GitHub gives you "stars" and some metadata, but it doesn't let you create **real
 - 📥 **Background cloning** — Clone any repo with a shortcut, without blocking your flow.
 - 💾 **TOML persistence** — Your organization lives in a single readable file: `~/.config/github-organizer/config.toml`.
 - 🎨 **Themes and Nerd Fonts** — Customize the look and enjoy beautiful icons in your terminal.
+- 🔍 **Dependency check** — Detects missing `git`, `keyring` or `gh` CLI at startup, with distro-aware install commands and a blocking modal when `git` is missing.
+- 📜 **Built-in log viewer** — Press `Ctrl+L` to open the last 200 lines of `app.log`, color-coded by level and copyable to the clipboard.
 
 ---
 
@@ -69,6 +69,15 @@ uv tool install gh-organizer
 ```bash
 pipx install gh-organizer
 ```
+
+### 📦 Published on PyPI via Trusted Publishing
+
+Releases are published automatically from GitHub Actions using
+[PyPI Trusted Publishing](https://docs.pypi.org/trusted-publishers/) (OIDC).
+No API tokens are stored in the repository. Every `v*` tag triggers:
+
+1. Cross-platform binary build (Linux, macOS, Windows, AppImage).
+2. Upload of the wheel and sdist to PyPI.
 
 ### Prebuilt binary
 
@@ -106,17 +115,22 @@ gh-organizer
 1. Launch the TUI with `gh-organizer`.
 2. Paste your GitHub token when prompted (or set the `GITHUB_TOKEN` environment variable).
 3. Press `?` at any time to open the shortcuts cheat sheet.
+4.
 
 | Shortcut | Action                                         |
 | :------: | ---------------------------------------------- |
+| `Ctrl+D` | Show dependency status (git, keyring, gh CLI)  |
+| `Ctrl+L` | Open the logs viewer (last 200 lines)          |
+| `Ctrl+T` | Configure GitHub token                         |
 |   `m`    | Move selected repo(s) to a collection          |
 |   `o`    | Auto-organize by language, visibility, or both |
 |   `g`    | Clone the repository in the background         |
 |   `/`    | Search / filter repositories                   |
 | `Enter`  | View details (recent commits and releases)     |
 |   `n`    | Create a new collection                        |
+|   `s`    | Open Settings                                  |
 |   `r`    | Refresh data from GitHub                       |
-|   `?`    | Show shortcuts help                            |
+|   `?`    | Show shortcuts help (full cheat sheet)         |
 |   `q`    | Quit                                           |
 
 ---
@@ -187,7 +201,7 @@ Contributions are more than welcome! Whether you want to add code, report a bug,
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/gh-organizer.git
+git clone https://github.com/NeRo0128/gh-organizer.git
 cd gh-organizer
 
 # 2. Install dependencies (incl. dev)
@@ -200,9 +214,9 @@ uv run pytest
 uv run ruff check src tests scripts
 ```
 
-- 🐛 **Found a bug?** Open an [Issue](https://github.com/your-username/gh-organizer/issues).
+- 🐛 **Found a bug?** Open an [Issue](https://github.com/NeRo0128/gh-organizer/issues).
 - 📝 **Pull requests** are welcome — follow the [Conventional Commits](https://www.conventionalcommits.org) convention (e.g. `feat(release): añadir AppImage al workflow`).
-- 💡 **Have an idea?** [Pull Requests](https://github.com/your-username/gh-organizer/pulls) are welcome, big or small.
+- 💡 **Have an idea?** [Pull Requests](https://github.com/NeRo0128/gh-organizer/pulls) are welcome, big or small.
 - 📝 **First open source contribution?** Don't be afraid! Check out issues labeled `good first issue` and we'll gladly help you.
 
 ---
