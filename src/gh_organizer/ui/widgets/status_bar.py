@@ -9,17 +9,31 @@ from gh_organizer.i18n import _
 
 
 class StatusBar(Horizontal):
-    """Barra de estado que muestra el estado actual y atajos clave."""
+    """Barra de estado que muestra el estado actual y atajos clave.
+
+    Args:
+        hints: Texto personalizado para el lado izquierdo. Si es None,
+               usa el default de MainScreen ("? Ayuda · q Salir").
+    """
+
+    def __init__(self, hints: str | None = None, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self._hints = hints
 
     def compose(self) -> ComposeResult:
-        # Lado izquierdo: Atajos esenciales y estado
-        yield Static(
-            f"[dim]?[/dim] {_('Ayuda')}  ·  [dim]q[/dim] {_('Salir')}  ·  ",
-            id="status-left",
+        hints_text = (
+            self._hints
+            if self._hints is not None
+            else f"[dim]?[/dim] {_('Ayuda')}  ·  [dim]q[/dim] {_('Salir')}"
         )
-        # Lado derecho: Mensaje dinámico (se actualizará desde la pantalla)
+        yield Static(hints_text, id="status-left")
         yield Static(f"[dim]{_('Listo')}[/dim]", id="status-right")
 
     def set_status(self, message: str) -> None:
         """Actualiza el mensaje dinámico de la derecha."""
         self.query_one("#status-right", Static).update(f"[b]{message}[/b]")
+
+    def set_hints(self, hints: str) -> None:
+        """Actualiza el texto del lado izquierdo (para cambios de idioma)."""
+        self._hints = hints
+        self.query_one("#status-left", Static).update(hints)

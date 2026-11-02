@@ -67,3 +67,4 @@ ICON_SEARCH = icon("cod-search", "Search")  # o "fa-search" si prefieres FontAwe
 
 ICON_CHECK = icon("fa-check", "✓")
 ICON_CROSS = icon("fa-times", "✗")
+ICON_TOOLS = icon("fa-wrench", "🔧")  # Avanzado

@@ -21,11 +21,13 @@ from textual.app import ComposeResult
 from textual.binding import BindingType
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.screen import Screen
-from textual.widgets import Footer, Header, Static
+from textual.widgets import Header, Static
 
+from gh_organizer import __version__
 from gh_organizer.core.exceptions import GhOrganizerError
 from gh_organizer.i18n import _, setup_i18n
 from gh_organizer.services import load_token, preferences
+from gh_organizer.services.config import CONFIG_FILE
 from gh_organizer.services.preferences import LANGUAGE_NAMES, VALID_LANGUAGES
 from gh_organizer.services.token_info import (
     TOKEN_PERMISSIONS,
@@ -40,9 +42,11 @@ from gh_organizer.ui import (
     ICON_KEY,
     ICON_PALETTE,
     ICON_SLIDERS,
+    ICON_TOOLS,
     keybindings,
 )
 from gh_organizer.ui.styles import SETTINGS_CSS
+from gh_organizer.ui.widgets import StatusBar
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +75,6 @@ SETTINGS_CATALOG: dict[str, list[SettingRow]] = {
             "language",
             "Idioma",
             "select",
-            # Los nombres viajan como msgid al catálogo: se traducen al pintar.
             choices=[LANGUAGE_NAMES[code] for code in VALID_LANGUAGES],
             values=list(VALID_LANGUAGES),
         ),
@@ -142,7 +145,6 @@ SETTINGS_CATALOG: dict[str, list[SettingRow]] = {
         SettingRow("confirm_organize", "Confirmar antes de organizar", "switch"),
         SettingRow("confirm_delete_folder", "Confirmar antes de eliminar", "switch"),
     ],
-    # "account" se construye aparte (contiene info y acciones)
 }
 
 
@@ -151,6 +153,7 @@ SECTION_TITLES: dict[str, str] = {
     "repositories": "Repositorios",
     "organizacion": "Organización",
     "account": "Cuenta",
+    "advanced": "Avanzado",
 }
 
 SECTION_ICONS: dict[str, str] = {
@@ -158,11 +161,12 @@ SECTION_ICONS: dict[str, str] = {
     "repositories": ICON_FOLDER,
     "organizacion": ICON_COG,
     "account": ICON_KEY,
+    "advanced": ICON_TOOLS,
 }
 
 
 class SettingsScreen(Screen):
-    """Pantalla con 4 secciones de configuración."""
+    """Pantalla con 5 secciones de configuración."""
 
     BINDINGS: ClassVar[list[BindingType]] = keybindings.SETTINGS
     CSS_PATH = SETTINGS_CSS
@@ -172,6 +176,7 @@ class SettingsScreen(Screen):
         "repositories",
         "organizacion",
         "account",
+        "advanced",
     ]
 
     def __init__(self) -> None:
@@ -181,13 +186,14 @@ class SettingsScreen(Screen):
         self._prefs: dict = {}
         self._account_scopes: set[str] = set()
         self._account_token: str = ""
+        self._pending_reset: bool = False
 
     # ---------------------------------------------------------------- #
     #  Composición
     # ---------------------------------------------------------------- #
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
-        yield Static("", id="settings-topbar")
+        yield Static("", id="topbar", classes="screen-topbar")
         with Horizontal(id="settings-tabs"):
             for i, sid in enumerate(self.SECTIONS):
                 yield Static(
@@ -198,7 +204,10 @@ class SettingsScreen(Screen):
         with VerticalScroll(id="settings-content") as content:
             content.border_title = f" {_('Configuración')} "
             yield Vertical(id="section-options")
-        yield Footer()
+        yield StatusBar(
+            hints=_("Tab sección · ←→ valor · Enter aplicar · Esc volver"),
+            id="statusbar",
+        )
 
     def on_mount(self) -> None:
         self._prefs = preferences.load_all()
@@ -227,7 +236,6 @@ class SettingsScreen(Screen):
     def _render_section(self) -> None:
         sid = self._section_id()
 
-        # Actualizar el título del panel derecho (border-title)
         content = self.query_one("#settings-content")
         content.border_title = f" {_(SECTION_TITLES[sid])} "
 
@@ -236,6 +244,8 @@ class SettingsScreen(Screen):
 
         if sid == "account":
             self._build_account(container)
+        elif sid == "advanced":
+            self._build_advanced(container)
         else:
             for row in SETTINGS_CATALOG.get(sid, []):
                 row.value = self._prefs.get(row.key, preferences.DEFAULTS.get(row.key))
@@ -249,12 +259,11 @@ class SettingsScreen(Screen):
         container = self.query_one("#section-options", Vertical)
         for i, child in enumerate(container.children):
             child.set_class(i == self._active_option, "-selected")
-        # Auto-scroll al elemento seleccionado
         if container.children:
             container.children[self._active_option].scroll_visible()
 
     def _update_topbar(self) -> None:
-        topbar = self.query_one("#settings-topbar", Static)
+        topbar = self.query_one("#topbar", Static)
         theme_names = {
             "github": "GitHub Dark",
             "tokyo-night": "Tokyo Night",
@@ -291,7 +300,6 @@ class SettingsScreen(Screen):
     def _format_row(self, row: SettingRow, pending: bool) -> str:
         marker = "  [yellow]⏳[/yellow]" if pending else ""
         if pending:
-            # Toda la fila en dim yellow para distinguir a simple vista
             if row.kind == "select":
                 idx = (
                     row.values.index(row.value)
@@ -299,15 +307,14 @@ class SettingsScreen(Screen):
                     else 0
                 )
                 display = _(row.choices[idx]) if row.choices else str(row.value)
-                return (
-                    f"[dim yellow]{_(row.label):<26}  ‹ {display} ›{marker}[/dim yellow]"
-                )
+                return f"[dim yellow]{_(row.label):<26}  ‹ {display} ›{marker}[/dim yellow]"
             if row.kind == "switch":
                 state = "✓" if row.value else " "
-                return f"[dim yellow]{_(row.label):<26}  [ {state} ]{marker}[/dim yellow]"
+                return (
+                    f"[dim yellow]{_(row.label):<26}  [ {state} ]{marker}[/dim yellow]"
+                )
             return f"[dim yellow]{_(row.label)}{marker}[/dim yellow]"
 
-        # Implementado → colores normales
         if row.kind == "select":
             idx = (
                 row.values.index(row.value)
@@ -330,7 +337,6 @@ class SettingsScreen(Screen):
     # ---------------------------------------------------------------- #
     def _build_account(self, parent: Vertical) -> None:
         token = self._account_token
-        # Token actual
         parent.mount(
             self._build_row(
                 SettingRow(
@@ -344,7 +350,6 @@ class SettingsScreen(Screen):
                 )
             )
         )
-        # Contador de permisos
         detected = sum(1 for p in TOKEN_PERMISSIONS if p.scope in self._account_scopes)
         parent.mount(
             self._build_row(
@@ -356,7 +361,6 @@ class SettingsScreen(Screen):
                 )
             )
         )
-        # Permisos individuales
         for perm in TOKEN_PERMISSIONS:
             has = perm.scope in self._account_scopes
             if has:
@@ -381,7 +385,6 @@ class SettingsScreen(Screen):
                     )
                 )
             )
-        # Acciones
         parent.mount(
             self._build_row(
                 SettingRow(
@@ -400,6 +403,77 @@ class SettingsScreen(Screen):
                     "→ Cerrar sesión",
                     "action",
                     value=f"[dim]{_('Enter para eliminar el token guardado')}[/dim]",
+                    as_markup=True,
+                )
+            )
+        )
+
+    # ---------------------------------------------------------------- #
+    #  Sección Avanzado
+    # ---------------------------------------------------------------- #
+    def _build_advanced(self, parent: Vertical) -> None:
+        parent.mount(
+            self._build_row(
+                SettingRow(
+                    "_version",
+                    "Versión",
+                    "info",
+                    value=f"[cyan]{__version__}[/cyan]",
+                    as_markup=True,
+                )
+            )
+        )
+        parent.mount(
+            self._build_row(
+                SettingRow(
+                    "_config_path",
+                    "Ruta de configuración",
+                    "info",
+                    value=f"[dim]{CONFIG_FILE}[/dim]",
+                    as_markup=True,
+                )
+            )
+        )
+        parent.mount(
+            self._build_row(
+                SettingRow(
+                    "_open_config_folder",
+                    "Abrir carpeta de configuración",
+                    "action",
+                    value=f"[dim]{_('Enter para abrir')}[/dim]",
+                    as_markup=True,
+                )
+            )
+        )
+        parent.mount(
+            self._build_row(
+                SettingRow(
+                    "_view_logs",
+                    "Ver logs (próximamente)",
+                    "action",
+                    value=f"[dim]{_('Enter para abrir')}[/dim]",
+                    as_markup=True,
+                )
+            )
+        )
+        parent.mount(
+            self._build_row(
+                SettingRow(
+                    "_view_releases",
+                    "Ver releases en GitHub",
+                    "action",
+                    value=f"[dim]{_('Enter para abrir')}[/dim]",
+                    as_markup=True,
+                )
+            )
+        )
+        parent.mount(
+            self._build_row(
+                SettingRow(
+                    "_reset_prefs",
+                    "Restablecer preferencias",
+                    "action",
+                    value=f"[dim]{_('Enter para restablecer')}[/dim]",
                     as_markup=True,
                 )
             )
@@ -439,6 +513,7 @@ class SettingsScreen(Screen):
     def _next_section(self, delta: int) -> None:
         self._active_section = (self._active_section + delta) % len(self.SECTIONS)
         self._active_option = 0
+        self._pending_reset = False
         self._render_section()
         self._update_tabs()
 
@@ -497,14 +572,13 @@ class SettingsScreen(Screen):
         try:
             preferences.set_value(key, value)
         except GhOrganizerError as e:
-            # Revertimos en memoria: lo que se ve debe coincidir con el disco.
             self._prefs[key] = previous
             self.notify(e.localized_message, severity="error", timeout=6)
             self._render_section()
             return
         if key == "theme":
             self.app.theme = value
-            self._update_topbar()  # ← refrescar la línea de contexto
+            self._update_topbar()
         elif key == "language":
             self._apply_language(value)
         if preferences.is_pending(key):
@@ -513,13 +587,13 @@ class SettingsScreen(Screen):
     def _apply_language(self, value: str) -> None:
         """Cambia el idioma en caliente: esta pantalla y la de atrás."""
         resolved = setup_i18n(value)
-        # Marca para que MainScreen se recomponga al volver a ella.
         self.app.i18n_dirty = True
         self._update_tabs()
         self._update_topbar()
         self._render_section()
-        # El Footer también muestra descripciones traducidas.
-        self.query_one(Footer).refresh()
+        self.query_one(StatusBar).set_hints(
+            _("Tab sección · ←→ valor · Enter aplicar · Esc volver")
+        )
         logger.info("Idioma cambiado a %s", resolved)
         self.notify(
             _("🌐 Idioma aplicado: %(lang)s") % {"lang": resolved},
@@ -538,6 +612,11 @@ class SettingsScreen(Screen):
         if data["kind"] != "action":
             return
         key = data["key"]
+
+        # Salir del modo confirmación si se ejecuta otra acción
+        if self._pending_reset and key != "_reset_prefs":
+            self._pending_reset = False
+
         if key == "_create_token":
             url = build_token_creation_url()
             logger.info("Abriendo navegador: %s", url)
@@ -549,6 +628,37 @@ class SettingsScreen(Screen):
             )
         elif key == "_logout":
             self._logout()
+        elif key == "_open_config_folder":
+            webbrowser.open(f"file://{CONFIG_FILE.parent}")
+            self.notify(
+                _("Carpeta de configuración abierta"),
+                severity="information",
+                timeout=3,
+            )
+        elif key == "_view_logs":
+            self.notify(
+                _("Próximamente: visor de logs"),
+                severity="information",
+                timeout=3,
+            )
+        elif key == "_view_releases":
+            webbrowser.open("https://github.com/NeRo0128/gh-organizer/releases")
+            self.notify(
+                _("🌐 Abriendo releases en el navegador…"),
+                severity="information",
+                timeout=3,
+            )
+        elif key == "_reset_prefs":
+            if not self._pending_reset:
+                self._pending_reset = True
+                self.notify(
+                    _("⚠️ Pulsa Enter otra vez para confirmar el restablecimiento"),
+                    severity="warning",
+                    timeout=5,
+                )
+            else:
+                self._pending_reset = False
+                self._reset_preferences()
 
     def _logout(self) -> None:
         if not self._account_token:
@@ -559,3 +669,15 @@ class SettingsScreen(Screen):
         self._account_scopes = set()
         self._render_section()
         self.notify(_("🔒 Token eliminado."), severity="information", timeout=3)
+
+    def _reset_preferences(self) -> None:
+        self._prefs = dict(preferences.DEFAULTS)
+        preferences.save_all(self._prefs)
+        self.app.theme = self._prefs.get("theme", "github")
+        self._update_topbar()
+        self._render_section()
+        self.notify(
+            _("Preferencias restablecidas"),
+            severity="warning",
+            timeout=3,
+        )

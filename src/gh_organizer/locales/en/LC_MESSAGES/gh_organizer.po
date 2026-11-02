@@ -599,3 +599,48 @@ msgstr "⚠️  A critical dependency is missing. The app will work but you won'
 
 msgid "🔍 Estado de dependencias"
 msgstr "🔍 Dependency status"
+
+msgid "Tab sección · ←→ valor · Enter aplicar · Esc volver"
+msgstr "Tab section · ←→ value · Enter apply · Esc back"
+
+msgid "Avanzado"
+msgstr "Advanced"
+
+msgid "Versión"
+msgstr "Version"
+
+msgid "Ruta de configuración"
+msgstr "Config path"
+
+msgid "Abrir carpeta de configuración"
+msgstr "Open config folder"
+
+msgid "Ver logs (próximamente)"
+msgstr "View logs (coming soon)"
+
+msgid "Ver releases en GitHub"
+msgstr "View releases on GitHub"
+
+msgid "Restablecer preferencias"
+msgstr "Reset preferences"
+
+msgid "Preferencias restablecidas"
+msgstr "Preferences reset"
+
+msgid "Carpeta de configuración abierta"
+msgstr "Config folder opened"
+
+msgid "Próximamente: visor de logs"
+msgstr "Coming soon: log viewer"
+
+msgid "Enter para abrir"
+msgstr "Press Enter to open"
+
+msgid "Enter para restablecer"
+msgstr "Press Enter to reset"
+
+msgid "⚠️ Pulsa Enter otra vez para confirmar el restablecimiento"
+msgstr "⚠️ Press Enter again to confirm the reset"
+
+msgid "🌐 Abriendo releases en el navegador…"
+msgstr "🌐 Opening releases in browser…"

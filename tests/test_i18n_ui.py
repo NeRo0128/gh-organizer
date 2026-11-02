@@ -91,7 +91,7 @@ def test_changing_language_updates_tabs_and_marks_app(
             assert app.i18n_dirty is True
             assert "Appearance" in str(screen.query_one("#tab-0", Static).render())
             assert "Settings" in str(
-                screen.query_one("#settings-topbar", Static).render()
+                screen.query_one("#topbar", Static).render()
             )
 
     asyncio.run(scenario())
