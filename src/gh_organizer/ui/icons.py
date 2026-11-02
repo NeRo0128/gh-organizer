@@ -64,3 +64,7 @@ ICON_KEY = icon("fa-key", "🔑")  # Cuenta
 ICON_SLIDERS = icon("fa-sliders", "⚙️")  # Configuración topbar
 
 ICON_SEARCH = icon("cod-search", "Search")  # o "fa-search" si prefieres FontAwesome
+
+ICON_CHECK = icon("fa-check", "✓")
+ICON_CROSS = icon("fa-times", "✗")
+ICON_TOOLS = icon("fa-wrench", "🔧")  # Avanzado

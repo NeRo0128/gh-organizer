@@ -20,12 +20,12 @@ class Binding(_TextualBinding):
         self._msgid = description
         super().__init__(key, action, description, **kwargs)
 
-    @property
+    @property  # type: ignore[override]
     def description(self) -> str:
         return _(self._msgid)
 
-    @description.setter
-    def description(self, value: str) -> None:
+    @description.setter  # type: ignore[override]
+    def description(self, value: str) -> None:  # type: ignore[override]s
         self._msgid = value
 
 
@@ -33,6 +33,8 @@ GLOBAL: list[BindingType] = [
     Binding("q", "quit", "Salir"),
     Binding("ctrl+c", "quit", "Salir"),
     Binding("ctrl+t", "push_token_screen", "Token"),
+    Binding("ctrl+d", "show_dependencies", "Dependencias"),
+    Binding("ctrl+l", "show_logs", "Logs"),
 ]
 
 MAIN: list[BindingType] = [
@@ -77,4 +79,17 @@ ORGANIZE: list[BindingType] = [
 
 HELP: list[BindingType] = [
     Binding("escape", "app.pop_screen", "Cerrar"),
+]
+
+DEPENDENCIES: list[BindingType] = [
+    Binding("escape", "cancel", "Salir", priority=True),
+    Binding("y", "confirm", "Continuar", priority=True),
+    Binding("n", "cancel", "Salir", priority=True),
+]
+LOGS: list[BindingType] = [
+    Binding("escape", "close", "Cerrar", priority=True),
+    Binding("q", "close", "Cerrar", priority=True),
+    Binding("r", "refresh", "Refrescar", priority=True),
+    Binding("c", "copy", "Copiar", priority=True),
+    Binding("o", "open_folder", "Abrir carpeta", priority=True),
 ]

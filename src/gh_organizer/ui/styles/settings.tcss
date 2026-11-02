@@ -2,11 +2,11 @@ SettingsScreen {
     layout: vertical;
 }
 
-#settings-topbar {
+#topbar {
     height: 1;
     padding: 0 2;
     background: $boost;
-    color: $foreground;
+    color: $text;
 }
 
 /* ────────── Tabs horizontales ────────── */

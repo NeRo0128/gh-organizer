@@ -572,3 +572,111 @@ msgstr "🔒 Token eliminado."
 
 msgid "🔒 Tu token no tiene el permiso [b]%(scope)s[/b].\nEdítalo en GitHub → Settings → Developer settings → Tokens."
 msgstr "🔒 Tu token no tiene el permiso [b]%(scope)s[/b].\nEdítalo en GitHub → Settings → Developer settings → Tokens."
+
+msgid "(crítica)"
+msgstr "(crítica)"
+
+msgid "Continuar de todas formas"
+msgstr "Continuar de todas formas"
+
+msgid "Entendido"
+msgstr "Entendido"
+
+msgid "Verificación de dependencias"
+msgstr "Verificación de dependencias"
+
+msgid "instalado"
+msgstr "instalado"
+
+msgid "no instalado"
+msgstr "no instalado"
+
+msgid "ℹ️  Algunas dependencias opcionales faltan. La app funcionará con funcionalidad reducida."
+msgstr "ℹ️  Algunas dependencias opcionales faltan. La app funcionará con funcionalidad reducida."
+
+msgid "⚠️  Falta una dependencia crítica. La app funcionará pero no podrás clonar repositorios."
+msgstr "⚠️  Falta una dependencia crítica. La app funcionará pero no podrás clonar repositorios."
+
+msgid "🔍 Estado de dependencias"
+msgstr "🔍 Estado de dependencias"
+
+msgid "Tab sección · ←→ valor · Enter aplicar · Esc volver"
+msgstr "Tab sección · ←→ valor · Enter aplicar · Esc volver"
+
+msgid "Avanzado"
+msgstr "Avanzado"
+
+msgid "Versión"
+msgstr "Versión"
+
+msgid "Ruta de configuración"
+msgstr "Ruta de configuración"
+
+msgid "Abrir carpeta de configuración"
+msgstr "Abrir carpeta de configuración"
+
+msgid "Ver releases en GitHub"
+msgstr "Ver releases en GitHub"
+
+msgid "Restablecer preferencias"
+msgstr "Restablecer preferencias"
+
+msgid "Preferencias restablecidas"
+msgstr "Preferencias restablecidas"
+
+msgid "Carpeta de configuración abierta"
+msgstr "Carpeta de configuración abierta"
+
+msgid "Enter para abrir"
+msgstr "Enter para abrir"
+
+msgid "Enter para restablecer"
+msgstr "Enter para restablecer"
+
+msgid "⚠️ Pulsa Enter otra vez para confirmar el restablecimiento"
+msgstr "⚠️ Pulsa Enter otra vez para confirmar el restablecimiento"
+
+msgid "🌐 Abriendo releases en el navegador…"
+msgstr "🌐 Abriendo releases en el navegador…"
+
+msgid "Espera un momento"
+msgstr "Espera un momento"
+
+msgid "Logs"
+msgstr "Logs"
+
+msgid "📋 Registros de la aplicación"
+msgstr "📋 Registros de la aplicación"
+
+msgid "Abrir carpeta"
+msgstr "Abrir carpeta"
+
+msgid "Refrescar"
+msgstr "Refrescar"
+
+msgid "Logs actualizados"
+msgstr "Logs actualizados"
+
+msgid "✅ Logs copiados al portapapeles"
+msgstr "✅ Logs copiados al portapapeles"
+
+msgid "❌ No se pudo leer el archivo de log"
+msgstr "❌ No se pudo leer el archivo de log"
+
+msgid "📂 Abriendo carpeta de logs"
+msgstr "📂 Abriendo carpeta de logs"
+
+msgid "No hay logs disponibles todavía."
+msgstr "No hay logs disponibles todavía."
+
+msgid "No hay herramienta de portapapeles (instala wl-clipboard o xclip)."
+msgstr "No hay herramienta de portapapeles (instala wl-clipboard o xclip)."
+
+msgid "Ninguna herramienta de portapapeles funcionó."
+msgstr "Ninguna herramienta de portapapeles funcionó."
+
+msgid "Ver logs"
+msgstr "Ver logs"
+
+msgid "Copiar"
+msgstr "Copiar"

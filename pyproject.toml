@@ -1,11 +1,20 @@
 [project]
 name = "gh-organizer"
-version = "1.0.1"
+version = "1.1.1"
 description = "Una TUI para organizar tus repositorios de GitHub en colecciones personalizadas"
 readme = "README.md"
 authors = [{ name = "Nero", email = "castillovegarodolfogilberto@gmail.com" }]
 license = { text = "MIT" }
 requires-python = ">=3.14"
+keywords = [
+    "github",
+    "tui",
+    "textual",
+    "cli",
+    "organizer",
+    "repositories",
+    "collections",
+]
 dependencies = [
     "keyring>=25.7.0",
     "nerdfont>=3.4.0.post1",
@@ -18,11 +27,17 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Software Development :: User Interfaces",
     "Topic :: Software Development :: Version Control :: Git",
     "Topic :: System :: Shells",
     "Topic :: Utilities",
 ]
+
+[project.optional-dependencies]
+dev = ["pytest>=9.2.0", "pytest-cov", "ruff"]
 
 [project.scripts]
 gh-organizer = "gh_organizer.__main__:main"
@@ -39,15 +54,9 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/gh_organizer"]
 
-[tool.hatch.build.targets.sdist]
-include = ["src/gh_organizer/**/*.tcss"]
-
-[tool.hatch.build.targets.wheel.force-include]
-"src/gh_organizer/ui/styles/auth.tcss" = "gh_organizer/ui/styles/auth.tcss"
-"src/gh_organizer/ui/styles/base.tcss" = "gh_organizer/ui/styles/base.tcss"
-"src/gh_organizer/ui/styles/main.tcss" = "gh_organizer/ui/styles/main.tcss"
-"src/gh_organizer/ui/styles/modals.tcss" = "gh_organizer/ui/styles/modals.tcss"
-"src/gh_organizer/ui/styles/settings.tcss" = "gh_organizer/ui/styles/settings.tcss"
+# Traducciones compiladas (mo)
+"src/gh_organizer/locales/es/LC_MESSAGES/gh_organizer.mo" = "gh_organizer/locales/es/LC_MESSAGES/gh_organizer.mo"
+"src/gh_organizer/locales/en/LC_MESSAGES/gh_organizer.mo" = "gh_organizer/locales/en/LC_MESSAGES/gh_organizer.mo"
 
 [dependency-groups]
 dev = ["appimage>=4.0.1", "pytest>=9.2.0"]
