@@ -1,6 +1,6 @@
 [project]
 name = "gh-organizer"
-version = "1.1.0"
+version = "1.1.1"
 description = "Una TUI para organizar tus repositorios de GitHub en colecciones personalizadas"
 readme = "README.md"
 authors = [{ name = "Nero", email = "castillovegarodolfogilberto@gmail.com" }]
