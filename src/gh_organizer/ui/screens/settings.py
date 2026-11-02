@@ -15,8 +15,10 @@ Los ajustes aún NO conectados a lógica se muestran en `dim yellow` con un
 import logging
 import webbrowser
 from dataclasses import dataclass, field
-from typing import Any, ClassVar, Literal
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, cast
 
+if TYPE_CHECKING:
+    from gh_organizer.app import GithubOrganizerApp
 from textual import work
 from textual._context import NoActiveAppError
 from textual.app import ComposeResult
@@ -671,7 +673,7 @@ class SettingsScreen(Screen):
     def _apply_language(self, value: str) -> None:
         """Cambia el idioma en caliente: esta pantalla y la de atrás."""
         resolved = setup_i18n(value)
-        self.app.i18n_dirty = True
+        cast("GithubOrganizerApp", self.app).i18n_dirty = True
         self._update_tabs()
         self._update_topbar()
         self._render_section()
@@ -721,7 +723,7 @@ class SettingsScreen(Screen):
             )
         elif key == "_view_logs":
             self.notify(
-                _("Próximamente: visor de logs"),
+                _("Ver logs"),
                 severity="information",
                 timeout=3,
             )

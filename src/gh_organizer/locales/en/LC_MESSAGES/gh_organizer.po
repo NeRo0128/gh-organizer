@@ -615,9 +615,6 @@ msgstr "Config path"
 msgid "Abrir carpeta de configuración"
 msgstr "Open config folder"
 
-msgid "Ver logs (próximamente)"
-msgstr "View logs (coming soon)"
-
 msgid "Ver releases en GitHub"
 msgstr "View releases on GitHub"
 
@@ -629,9 +626,6 @@ msgstr "Preferences reset"
 
 msgid "Carpeta de configuración abierta"
 msgstr "Config folder opened"
-
-msgid "Próximamente: visor de logs"
-msgstr "Coming soon: log viewer"
 
 msgid "Enter para abrir"
 msgstr "Press Enter to open"

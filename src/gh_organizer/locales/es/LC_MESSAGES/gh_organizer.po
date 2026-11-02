@@ -615,9 +615,6 @@ msgstr "Ruta de configuración"
 msgid "Abrir carpeta de configuración"
 msgstr "Abrir carpeta de configuración"
 
-msgid "Ver logs (próximamente)"
-msgstr "Ver logs (próximamente)"
-
 msgid "Ver releases en GitHub"
 msgstr "Ver releases en GitHub"
 
@@ -630,8 +627,6 @@ msgstr "Preferencias restablecidas"
 msgid "Carpeta de configuración abierta"
 msgstr "Carpeta de configuración abierta"
 
-msgid "Próximamente: visor de logs"
-msgstr "Próximamente: visor de logs"
 msgid "Enter para abrir"
 msgstr "Enter para abrir"
 

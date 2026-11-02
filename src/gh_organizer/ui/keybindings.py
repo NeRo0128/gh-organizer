@@ -20,12 +20,12 @@ class Binding(_TextualBinding):
         self._msgid = description
         super().__init__(key, action, description, **kwargs)
 
-    @property
+    @property  # type: ignore[override]
     def description(self) -> str:
         return _(self._msgid)
 
-    @description.setter
-    def description(self, value: str) -> None:
+    @description.setter  # type: ignore[override]
+    def description(self, value: str) -> None:  # type: ignore[override]s
         self._msgid = value
 
 

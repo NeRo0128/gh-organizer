@@ -4,8 +4,10 @@
 import logging
 import webbrowser
 from pathlib import Path
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar, cast
 
+if TYPE_CHECKING:
+    from gh_organizer.app import GithubOrganizerApp
 from textual import work
 from textual.app import ComposeResult
 from textual.binding import BindingType
@@ -101,7 +103,7 @@ class MainScreen(Screen):
         """
         if not getattr(self.app, "i18n_dirty", False):
             return
-        self.app.i18n_dirty = False
+        cast("GithubOrganizerApp", self.app).i18n_dirty = False
         self.refresh(recompose=True)
         self.call_after_refresh(self._after_recompose)
 

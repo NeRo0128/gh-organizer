@@ -149,7 +149,7 @@ class LogsModal(ModalScreen[None]):
             yield Static(_("📋 Registros de la aplicación"), classes="modal-title")
 
             with VerticalScroll(id="logs-content"):
-                yield Static(self._render_content(), id="logs-text", markup=True)
+                yield Static(self._build_logs_text(), id="logs-text", markup=True)
 
             yield Static(
                 f"[dim]{_('Ruta')}:[/dim] {LOG_FILE}",
@@ -163,7 +163,7 @@ class LogsModal(ModalScreen[None]):
                 yield Button(_("Refrescar"), id="btn-refresh")
                 yield Button(_("Cerrar"), id="btn-close", variant="error")
 
-    def _render_content(self) -> str:
+    def _build_logs_text(self) -> str:
         lines = _read_tail(LOG_FILE)
         if not lines:
             return f"[dim italic]{_('No hay logs disponibles todavía.')}[/dim italic]"
@@ -176,7 +176,7 @@ class LogsModal(ModalScreen[None]):
         self.dismiss(None)
 
     def action_refresh(self) -> None:
-        self.query_one("#logs-text", Static).update(self._render_content())
+        self.query_one("#logs-text", Static).update(self._build_logs_text())
         self.notify(_("Logs actualizados"), timeout=2)
 
     def action_copy(self) -> None:
